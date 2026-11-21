@@ -1,0 +1,12 @@
+name: Demo assignment
+max_points: 10
+build:
+  type: stub-build
+project_root_marker: src/main.c
+groups:
+  - id: basic
+    title: { en: Basic behaviour, sk: Zakladne spravanie }
+    points: 6
+  - id: advanced
+    title: Advanced behaviour
+    points: 4

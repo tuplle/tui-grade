@@ -1,0 +1,30 @@
+- id: echo-${mode}
+  title: { en: "Echo ${mode}", sk: "Ozvena ${mode}" }
+  group: basic
+  matrix:
+    mode: [fast, slow]
+  steps:
+    - noop:
+    - feed: { file: input.txt }
+  run: { args: ["--mode", "${mode}", "${fixtures}/input.txt"] }
+  expect:
+    - stdout_x: { contains: hello }
+    - nothing: {}
+- id: interactive
+  title: { en: Interactive, sk: Interaktivne }
+  group: advanced
+  weight: 2
+  steps:
+    - mkrun: { args: ["${binary}"] }
+      id: r1
+    - mksession: {}
+      id: s1
+  expect:
+    - stdout_x: { contains: ok }
+      from: r1
+    - screen_x: { contains: menu }
+      from: s1
+    - any_x: {}
+    - any_of:
+        - stdout_x: { contains: a }
+        - stdout_x: { contains: b }

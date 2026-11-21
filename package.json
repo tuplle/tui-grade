@@ -1,11 +1,44 @@
 {
-  "name": "tui-testing-framework",
+  "name": "tui-grade",
   "version": "1.0.0",
-  "description": "Testing framework for testing TUI applications",
-  "main": "index.js",
-  "keywords": [],
+  "description": "Plugin-based framework and CLI (tui-grade) for grading student terminal programs with declarative YAML scenarios",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "bin": {
+    "tui-grade": "dist/cli/main.js"
+  },
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "default": "./dist/index.js"
+    },
+    "./plugins/*": {
+      "types": "./dist/plugins/*/index.d.ts",
+      "default": "./dist/plugins/*/index.js"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "LICENSE.txt"
+  ],
+  "keywords": [
+    "grading",
+    "autograder",
+    "testing",
+    "tui",
+    "cli",
+    "education",
+    "yaml"
+  ],
   "author": "tuplle",
   "license": "Apache-2.0",
+  "bugs": {
+    "url": "https://github.com/tuplle/tui-grade/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "devEngines": {
     "packageManager": {
       "name": "pnpm",
@@ -18,21 +51,51 @@
   },
   "packageManager": "pnpm@12.21.0",
   "type": "module",
-  "homepage": "https://tuplle.github.io/tui-testing-framework",
+  "homepage": "https://tuplle.github.io/tui-grade",
   "repository": {
     "type": "git",
-    "url": "https://github.com/tuplle/tui-testing-framework.git"
+    "url": "https://github.com/tuplle/tui-grade.git"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "pnpm build && node dist/cli/main.js",
+    "dev": "pnpm build:web && node src/cli/main.ts",
+    "cli": "node src/cli/main.ts",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
+    "typecheck:watch": "tsc --noEmit -p tsconfig.json --watch",
+    "test": "cross-env NODE_OPTIONS=\"--experimental-vm-modules --disable-warning=ExperimentalWarning\" jest",
+    "test:unit": "cross-env NODE_OPTIONS=\"--experimental-vm-modules --disable-warning=ExperimentalWarning\" jest tests/core tests/plugins tests/cli tests/web tests/docs.test.ts tests/project-files.test.ts",
+    "test:windows": "cross-env NODE_OPTIONS=\"--experimental-vm-modules --disable-warning=ExperimentalWarning\" jest tests/core/data-dir.test.ts tests/web/open-browser.test.ts tests/docs.test.ts tests/project-files.test.ts",
+    "test:e2e": "cross-env NODE_OPTIONS=\"--experimental-vm-modules --disable-warning=ExperimentalWarning\" jest tests/e2e",
+    "test:packaging": "cross-env NODE_OPTIONS=\"--experimental-vm-modules --disable-warning=ExperimentalWarning\" jest tests/packaging.test.ts",
+    "test:watch": "cross-env NODE_OPTIONS=\"--experimental-vm-modules --disable-warning=ExperimentalWarning\" jest --watch",
+    "build": "tsc -p tsconfig.build.json && node scripts/copy-assets.mjs && pnpm build:web",
+    "build:web": "node scripts/build-web.mjs",
+    "check": "pnpm typecheck && pnpm test",
+    "verify": "pnpm check && pnpm build",
+    "bundle": "node scripts/make-bundle.mjs",
+    "docs": "npx serve docs",
+    "clean": "node scripts/clean.mjs",
+    "publish:dry": "pnpm publish --dry-run --no-git-checks",
+    "prepublishOnly": "pnpm build"
   },
   "dependencies": {
     "@microsoft/tui-test": "^0.1.1",
-    "jszip": "^3.10.2"
+    "express": "^5.3.0",
+    "jszip": "^3.10.2",
+    "yaml": "^2.9.1",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
+    "@tailwindcss/cli": "^4.3.5",
+    "@types/express": "^5.0.6",
+    "@types/jest": "^30.0.0",
     "@types/node": "^26.6.6",
+    "alpinejs": "^3.17.5",
+    "cross-env": "^10.1.0",
+    "esbuild": "^0.28.2",
     "jest": "^30.5.2",
+    "tailwindcss": "^4.3.5",
+    "tar": "^7.5.23",
     "typescript": "^7.0.2"
   }
 }

@@ -1,0 +1,102 @@
+# Group "incidents": `add`; state file incidenty.txt. Every scenario first registers a device through the
+# user plugin step insert_device (it runs the student's own `new` command).
+
+- id: inc-add-typed
+  title: { sk: Incident so zadaným typom, en: Incident with an explicit type }
+  group: incidents
+  weight: 2
+  steps:
+    - insert_device: { name: PC, ip: 192.168.10.1 }
+    - run: { args: [ add, --ip, 192.168.10.1, --type, ddos ] }
+  expect:
+    - exit_code: 0
+    - stdout_matches: &has_text \S
+    - file_contains: { path: incidenty.txt, text: 192.168.10.1 }
+    - file_contains: { path: incidenty.txt, text: ddos }
+- id: inc-add-default-type
+  title: { sk: Incident bez typu dostane typ unknown, en: An incident without a type gets the type unknown }
+  group: incidents
+  weight: 1.5
+  steps:
+    - insert_device: { name: PC, ip: 192.168.10.1 }
+    - run: { args: [ add, --ip, 192.168.10.1 ] }
+  expect:
+    - exit_code: 0
+    - file_contains: { path: incidenty.txt, text: 192.168.10.1 }
+    - file_contains: { path: incidenty.txt, text: unknown }
+- id: inc-add-type-${type}
+  title: { sk: 'Incident typu ${type}', en: 'Incident of type ${type}' }
+  group: incidents
+  weight: 0.5
+  matrix:
+    type: [ ddos, sql_injection, xss, brute_force, broken_auth ]
+  steps:
+    - insert_device: { name: PC, ip: 192.168.10.1 }
+    - run: { args: [ add, --ip, 192.168.10.1, --type, '${type}' ] }
+  expect:
+    - exit_code: 0
+    - file_contains: { path: incidenty.txt, text: 192.168.10.1 }
+    - file_contains: { path: incidenty.txt, text: '${type}' }
+- id: inc-add-unknown-device
+  title: { sk: Incident pre neznáme zariadenie sa odmietne, en: An incident for an unknown device is rejected }
+  group: incidents
+  weight: 1.5
+  steps:
+    - insert_device: { name: PC, ip: 192.168.10.1 }
+    - run: { args: [ add, --ip, 99.99.99.99, --type, ddos ] }
+  expect:
+    - exit_code: nonzero
+    - any_of: &has_message
+        - stderr_matches: \S
+        - stdout_matches: \S
+    - file_empty: incidenty.txt
+- id: inc-add-missing-ip
+  title: { sk: Chýba --ip, en: Missing --ip }
+  group: incidents
+  weight: 1
+  steps:
+    - insert_device: { name: PC, ip: 192.168.10.1 }
+    - run: { args: [ add, --type, ddos ] }
+  expect:
+    - exit_code: nonzero
+    - any_of:
+        - stderr_matches: { pattern: '\bip\b', ignore_case: true }
+        - stdout_matches: { pattern: '\bip\b', ignore_case: true }
+    - file_empty: incidenty.txt
+- id: inc-add-bad-type
+  title: { sk: Neplatný typ incidentu sa odmietne, en: An invalid incident type is rejected }
+  group: incidents
+  weight: 1
+  steps:
+    - insert_device: { name: PC, ip: 192.168.10.1 }
+    - run: { args: [ add, --ip, 192.168.10.1, --type, nonsense ] }
+  expect:
+    - exit_code: nonzero
+    - any_of: *has_message
+    - file_empty: incidenty.txt
+# Two runs in one scenario: `add` and then `list`; the checks read the last run (the listing).
+- id: inc-counter-increments
+  title: { sk: Incident zvýši počítadlo zariadenia, en: An incident raises the incident counter of the device }
+  group: incidents
+  weight: 1.5
+  steps:
+    - insert_device: { name: PC, ip: 192.168.10.1 }
+    - run: { args: [ add, --ip, 192.168.10.1, --type, ddos ] }
+    - run: { args: [ list ] }
+  expect:
+    - exit_code: 0
+    - stdout_matches: { pattern: '(?:incident|incidenty|count|number|total|pocet)\w*[^\n]*\b1\b', ignore_case: true, fold_diacritics: true }
+    - stdout_matches: { pattern: '\b2\b' }
+      not: true
+- id: inc-counter-twice
+  title: { sk: Dva incidenty zvýšia počítadlo na 2, en: Two incidents raise the counter to 2 }
+  group: incidents
+  weight: 1
+  steps:
+    - insert_device: { name: PC, ip: 192.168.10.1 }
+    - insert_incident: { ip: 192.168.10.1, type: ddos }
+    - insert_incident: { ip: 192.168.10.1, type: xss }
+    - run: { args: [ list ] }
+  expect:
+    - exit_code: 0
+    - stdout_matches: { pattern: '(?:incident|incidenty|count|number|total|pocet)\w*[^\n]*\b2\b', ignore_case: true, fold_diacritics: true }

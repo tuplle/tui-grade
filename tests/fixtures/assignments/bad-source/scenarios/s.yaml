@@ -1,0 +1,22 @@
+- id: session-only
+  title: Session only
+  steps:
+    - mksession: {}
+  expect:
+    - stdout_x: { contains: a }
+- id: nope
+  title: Missing from
+  steps:
+    - mkrun: {}
+  expect:
+    - stdout_x: { contains: a }
+      from: nope
+- id: kind-mismatch
+  title: Wrong kind
+  steps:
+    - mksession: {}
+      id: s1
+    - mkrun: {}
+  expect:
+    - stdout_x: { contains: a }
+      from: s1

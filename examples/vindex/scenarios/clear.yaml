@@ -1,0 +1,74 @@
+# Group "clear": `clear` and working with the index afterwards.
+
+- id: clear-empty-index
+  title: { sk: Vyčistenie prázdneho indexu, en: Clearing an empty index }
+  group: clear
+  weight: 0.5
+  run:
+    args: [ clear ]
+  expect:
+    - exit_code: 0
+    - stdout_matches: \S
+    - file_empty: vindex_index.txt
+- id: clear-with-content
+  title: { sk: Vyčistenie indexu s obsahom, en: Clearing an index with content }
+  group: clear
+  weight: 1
+  steps:
+    - copy: one-word.txt
+    - index_file: { file: one-word.txt }
+    - run: { args: [ clear ] }
+  expect:
+    - exit_code: 0
+    - stdout_matches: \S
+    - file_empty: vindex_index.txt
+- id: clear-then-stats
+  title: { sk: Po clear sú štatistiky prázdne, en: After clear the statistics are empty }
+  group: clear
+  weight: 1
+  steps:
+    - copy: one-word.txt
+    - index_file: { file: one-word.txt }
+    - run: { args: [ clear ] }
+    - run: { args: [ stats ] }
+  expect:
+    - exit_code: 0
+    - stdout_matches: { pattern: '(?:word|slov)[^\n]*\b0\b', ignore_case: true, fold_diacritics: true }
+    - stdout_matches: { pattern: '(?:file|subor)[^\n]*\b0\b', ignore_case: true, fold_diacritics: true }
+    - stdout_contains: one-word.txt
+      not: true
+# The cleared index forgets the file: it can be indexed (and found) again.
+- id: clear-then-reindex
+  title: { sk: Po clear sa súbor dá znova indexovať, en: After clear the file can be indexed again }
+  group: clear
+  weight: 1.5
+  steps:
+    - copy: one-word.txt
+    - index_file: { file: one-word.txt }
+    - run: { args: [ clear ] }
+    - run: { args: [ index, one-word.txt ] }
+    - run: { args: [ search, ambiguous ] }
+  expect:
+    - exit_code: 0
+    - stdout_contains: one-word.txt
+    - stdout_matches: '\b1\b'
+- id: clear-then-other-file
+  title: { sk: Po clear sa indexuje iný súbor, en: After clear another file is indexed }
+  group: clear
+  weight: 1
+  steps:
+    - copy: one-word.txt
+    - copy: trailing-dot.txt
+    - index_file: { file: one-word.txt }
+    - run: { args: [ clear ] }
+    - run: { args: [ index, trailing-dot.txt ] }
+    - id: new-word
+      run: { args: [ search, punctuation ] }
+    - id: old-word
+      run: { args: [ search, ambiguous ] }
+  expect:
+    - from: new-word
+      stdout_contains: trailing-dot.txt
+    - from: old-word
+      stdout_contains: one-word.txt
+      not: true

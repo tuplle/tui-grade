@@ -1,0 +1,142 @@
+# Group "index": `index`; state file vindex_index.txt. Texts come from fixtures/.
+
+- id: idx-simple
+  title: { sk: Indexovanie jednoduchého súboru, en: Indexing a simple file }
+  group: index
+  weight: 2
+  steps:
+    - copy: one-word.txt
+    - run: { args: [ index, one-word.txt ] }
+  expect:
+    - exit_code: 0
+    - stdout_matches: &has_text \S
+    - file_contains: { path: vindex_index.txt, text: ambiguous }
+    - file_contains: { path: vindex_index.txt, text: one-word.txt }
+    - file_contains: { path: vindex_index.txt, text: '1' }
+# The file is given with a directory, as the old tests did (test-files/one-word.txt).
+- id: idx-in-subdir
+  title: { sk: Súbor zadaný s cestou, en: A file given with a path }
+  group: index
+  weight: 1
+  steps:
+    - copy: { from: one-word.txt, to: test-files/one-word.txt }
+    - run: { args: [ index, test-files/one-word.txt ] }
+  expect:
+    - exit_code: 0
+    - file_contains: { path: vindex_index.txt, text: ambiguous }
+    - file_contains: { path: vindex_index.txt, text: one-word.txt }
+# The second indexing of the same file is ignored (the counts stay what they were).
+- id: idx-twice
+  title: { sk: Opakované indexovanie sa ignoruje, en: Indexing the same file twice is ignored }
+  group: index
+  weight: 2
+  steps:
+    - copy: one-word.txt
+    - index_file: { file: one-word.txt }
+    - id: again
+      run: { args: [ index, one-word.txt ] }
+    - id: found
+      run: { args: [ search, ambiguous ] }
+  expect:
+    - from: again
+      exit_code: 0
+    - from: found
+      stdout_contains: one-word.txt
+    - from: found
+      stdout_matches: '\b1\b'
+    - from: found
+      stdout_matches: '\b2\b'
+      not: true
+- id: idx-missing-file
+  title: { sk: Neexistujúci súbor, en: A file that does not exist }
+  group: index
+  weight: 1.5
+  run:
+    args: [ index, missing.txt ]
+  expect:
+    - exit_code: nonzero
+    - any_of: &has_message
+        - stderr_matches: \S
+        - stdout_matches: \S
+    - file_empty: vindex_index.txt
+- id: idx-no-argument
+  title: { sk: Príkaz index bez súboru, en: Command index without a file }
+  group: index
+  weight: 0.5
+  run:
+    args: [ index ]
+  expect:
+    - exit_code: nonzero
+    - any_of: *has_message
+# "Hello, WORLD! hello. (hello)": the words are lowercased, punctuation is dropped, hello occurs 3 times.
+- id: idx-normalization
+  title: { sk: 'Normalizácia slov (malé písmená, bez interpunkcie)', en: 'Word normalization (lowercase, no punctuation)' }
+  group: index
+  weight: 2
+  steps:
+    - copy: normalize.txt
+    - index_file: { file: normalize.txt }
+    - id: hello
+      run: { args: [ search, hello ] }
+    - id: world
+      run: { args: [ search, world ] }
+  expect:
+    - from: hello
+      stdout_matches: '\b3\b'
+    - from: world
+      stdout_matches: '\b1\b'
+    - file_contains: { path: vindex_index.txt, text: hello }
+    - file_contains: { path: vindex_index.txt, text: world }
+    - file_contains: { path: vindex_index.txt, text: 'WORLD' }
+      not: true
+    - file_contains: { path: vindex_index.txt, text: 'hello,' }
+      not: true
+    - file_contains: { path: vindex_index.txt, text: 'world!' }
+      not: true
+- id: idx-trailing-dot
+  title: { sk: Bodka za slovom sa ignoruje, en: A trailing dot is ignored }
+  group: index
+  weight: 1
+  steps:
+    - copy: trailing-dot.txt
+    - run: { args: [ index, trailing-dot.txt ] }
+  expect:
+    - exit_code: 0
+    - file_contains: { path: vindex_index.txt, text: punctuation }
+    - file_contains: { path: vindex_index.txt, text: 'punctuation.' }
+      not: true
+- id: idx-empty-file
+  title: { sk: Prázdny súbor, en: An empty file }
+  group: index
+  weight: 1
+  steps:
+    - copy: empty.txt
+    - run: { args: [ index, empty.txt ] }
+  expect:
+    - exit_code: 0
+    - file_empty: vindex_index.txt
+- id: idx-punctuation-only
+  title: { sk: Súbor len s interpunkciou, en: A file with punctuation only }
+  group: index
+  weight: 1
+  steps:
+    - copy: punctuation-only.txt
+    - run: { args: [ index, punctuation-only.txt ] }
+  expect:
+    - exit_code: 0
+    - file_empty: vindex_index.txt
+- id: idx-two-files
+  title: { sk: Dva rôzne súbory v jednom indexe, en: Two different files in one index }
+  group: index
+  weight: 1.5
+  steps:
+    - copy: story.txt
+    - copy: notes.txt
+    - index_file: { file: story.txt }
+    - run: { args: [ index, notes.txt ] }
+  expect:
+    - exit_code: 0
+    - file_contains: { path: vindex_index.txt, text: story.txt }
+    - file_contains: { path: vindex_index.txt, text: notes.txt }
+    - file_contains: { path: vindex_index.txt, text: quick }
+    - file_contains: { path: vindex_index.txt, text: dreams }

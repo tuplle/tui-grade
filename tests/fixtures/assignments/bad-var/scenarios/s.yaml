@@ -1,0 +1,6 @@
+- id: one
+  title: One
+  group: "${g}"
+  run: { args: ["${zzz}", "${binary}"] }
+  expect:
+    - stdout_x: { contains: "${workdir}/${other}" }

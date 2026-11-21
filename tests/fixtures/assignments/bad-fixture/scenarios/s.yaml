@@ -1,0 +1,7 @@
+- id: one
+  title: One
+  steps:
+    - feed: { file: present.txt }
+    - feed: { file: missing.txt }
+  run: {}
+  expect: []

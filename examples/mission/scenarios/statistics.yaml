@@ -1,0 +1,98 @@
+# Group "statistics": the final summary and the resulting states.
+
+- id: stat-success
+  title: { sk: Štatistika úspešnej misie, en: Statistics of a successful mission }
+  group: statistics
+  weight: 2
+  run:
+    args: [ --crew, '2', --days, '3', --food, '6', --oxygen, '12', --non-interactive ]
+  expect:
+    - exit_code: 0
+    - stdout_matches: { pattern: \buspesne\s+dokonc|\bsuccessful|\bsuccessfully|mission\s+(?:was\s+)?complete, ignore_case: true, fold_diacritics: true }
+    - stdout_matches: { pattern: '(?:dokonc|odsimul|complet|simulat|finish)[^\n]*\b3\s*(?:/|z|of)\s*3\b', ignore_case: true, fold_diacritics: true }
+    - stdout_matches: { pattern: \b100\.00\s*%, ignore_case: true, fold_diacritics: true }
+    - any_of:
+        - stdout_matches: { pattern: '(?:jedl|food)[^\n]*\b6\b[^\n]*\b6\b[^\n]*\b0\b', ignore_case: true, fold_diacritics: true }
+        - all_of:
+            - stdout_matches: { pattern: '(?:(?:zaciat|pociat|initial|start)\w*[^\n:]*(?:jedl|food)|(?:jedl|food)\w*[^\n:]*(?:zaciat|pociat|initial|start))[^\n]*\b6\b', ignore_case: true, fold_diacritics: true }
+            - stdout_matches: { pattern: '(?:(?:spotreb|consum)\w*[^\n:]*(?:jedl|food)|(?:jedl|food)\w*[^\n:]*(?:spotreb|consum))[^\n]*\b6\b', ignore_case: true, fold_diacritics: true }
+            - stdout_matches: &food_left_0 { pattern: '(?:(?:zostav|remain|left)\w*[^\n:]*(?:jedl|food)|(?:jedl|food)\w*[^\n:]*(?:zostav|remain|left))[^\n]*\b0\b', ignore_case: true, fold_diacritics: true }
+    - any_of:
+        - stdout_matches: { pattern: '(?:kysl|oxyg)[^\n]*\b12\b[^\n]*\b12\b[^\n]*\b0\b', ignore_case: true, fold_diacritics: true }
+        - all_of:
+            - stdout_matches: { pattern: '(?:(?:zaciat|pociat|initial|start)\w*[^\n:]*(?:kysl|oxyg)|(?:kysl|oxyg)\w*[^\n:]*(?:zaciat|pociat|initial|start))[^\n]*\b12\b', ignore_case: true, fold_diacritics: true }
+            - stdout_matches: { pattern: '(?:(?:spotreb|consum)\w*[^\n:]*(?:kysl|oxyg)|(?:kysl|oxyg)\w*[^\n:]*(?:spotreb|consum))[^\n]*\b12\b', ignore_case: true, fold_diacritics: true }
+            - stdout_matches: { pattern: '(?:(?:zostav|remain|left)\w*[^\n:]*(?:kysl|oxyg)|(?:kysl|oxyg)\w*[^\n:]*(?:zostav|remain|left))[^\n]*\b0\b', ignore_case: true, fold_diacritics: true }
+# --days 5: also hit by the hangs fixture.
+- id: stat-fail-food
+  title: { sk: 'Štatistika: zlyhanie pre jedlo', en: 'Statistics: failure for lack of food' }
+  group: statistics
+  weight: 1.5
+  run:
+    args: [ --crew, '2', --days, '5', --food, '5', --oxygen, '100', --non-interactive ]
+  expect:
+    - exit_code: 0
+    - stdout_matches: &failure_wording { pattern: zlyhani|\bfail(?:ed|ure)\b|nedostat|shortage|insufficient|not enough, ignore_case: true, fold_diacritics: true }
+    - stdout_matches: { pattern: '(?:dokonc|odsimul|complet|simulat|finish)[^\n]*\b2\s*(?:/|z|of)\s*5\b', ignore_case: true, fold_diacritics: true }
+    - stdout_matches: { pattern: \b40\.00\s*%, ignore_case: true, fold_diacritics: true }
+    - any_of:
+        - stdout_matches: { pattern: '(?:jedl|food)[^\n]*\b5\b[^\n]*\b4\b[^\n]*\b1\b', ignore_case: true, fold_diacritics: true }
+        - all_of:
+            - stdout_matches: { pattern: '(?:(?:zaciat|pociat|initial|start)\w*[^\n:]*(?:jedl|food)|(?:jedl|food)\w*[^\n:]*(?:zaciat|pociat|initial|start))[^\n]*\b5\b', ignore_case: true, fold_diacritics: true }
+            - stdout_matches: { pattern: '(?:(?:spotreb|consum)\w*[^\n:]*(?:jedl|food)|(?:jedl|food)\w*[^\n:]*(?:spotreb|consum))[^\n]*\b4\b', ignore_case: true, fold_diacritics: true }
+            - stdout_matches: { pattern: '(?:(?:zostav|remain|left)\w*[^\n:]*(?:jedl|food)|(?:jedl|food)\w*[^\n:]*(?:zostav|remain|left))[^\n]*\b1\b', ignore_case: true, fold_diacritics: true }
+    - any_of:
+        - stdout_matches: { pattern: '(?:kysl|oxyg)[^\n]*\b100\b[^\n]*\b8\b[^\n]*\b92\b', ignore_case: true, fold_diacritics: true }
+        - all_of:
+            - stdout_matches: { pattern: '(?:(?:zaciat|pociat|initial|start)\w*[^\n:]*(?:kysl|oxyg)|(?:kysl|oxyg)\w*[^\n:]*(?:zaciat|pociat|initial|start))[^\n]*\b100\b', ignore_case: true, fold_diacritics: true }
+            - stdout_matches: { pattern: '(?:(?:spotreb|consum)\w*[^\n:]*(?:kysl|oxyg)|(?:kysl|oxyg)\w*[^\n:]*(?:spotreb|consum))[^\n]*\b8\b', ignore_case: true, fold_diacritics: true }
+            - stdout_matches: { pattern: '(?:(?:zostav|remain|left)\w*[^\n:]*(?:kysl|oxyg)|(?:kysl|oxyg)\w*[^\n:]*(?:zostav|remain|left))[^\n]*\b92\b', ignore_case: true, fold_diacritics: true }
+- id: stat-fail-oxygen
+  title: { sk: 'Štatistika: zlyhanie pre kyslík', en: 'Statistics: failure for lack of oxygen' }
+  group: statistics
+  weight: 1.5
+  run:
+    args: [ --crew, '1', --days, '4', --food, '100', --oxygen, '5', --non-interactive ]
+  expect:
+    - exit_code: 0
+    - stdout_matches: *failure_wording
+    - stdout_matches: { pattern: '(?:dokonc|odsimul|complet|simulat|finish)[^\n]*\b2\s*(?:/|z|of)\s*4\b', ignore_case: true, fold_diacritics: true }
+    - stdout_matches: { pattern: \b50\.00\s*%, ignore_case: true, fold_diacritics: true }
+    - any_of:
+        - stdout_matches: { pattern: '(?:jedl|food)[^\n]*\b100\b[^\n]*\b2\b[^\n]*\b98\b', ignore_case: true, fold_diacritics: true }
+        - all_of:
+            - stdout_matches: { pattern: '(?:(?:zaciat|pociat|initial|start)\w*[^\n:]*(?:jedl|food)|(?:jedl|food)\w*[^\n:]*(?:zaciat|pociat|initial|start))[^\n]*\b100\b', ignore_case: true, fold_diacritics: true }
+            - stdout_matches: { pattern: '(?:(?:spotreb|consum)\w*[^\n:]*(?:jedl|food)|(?:jedl|food)\w*[^\n:]*(?:spotreb|consum))[^\n]*\b2\b', ignore_case: true, fold_diacritics: true }
+            - stdout_matches: { pattern: '(?:(?:zostav|remain|left)\w*[^\n:]*(?:jedl|food)|(?:jedl|food)\w*[^\n:]*(?:zostav|remain|left))[^\n]*\b98\b', ignore_case: true, fold_diacritics: true }
+    - any_of:
+        - stdout_matches: { pattern: '(?:kysl|oxyg)[^\n]*\b5\b[^\n]*\b4\b[^\n]*\b1\b', ignore_case: true, fold_diacritics: true }
+        - all_of:
+            - stdout_matches: { pattern: '(?:(?:zaciat|pociat|initial|start)\w*[^\n:]*(?:kysl|oxyg)|(?:kysl|oxyg)\w*[^\n:]*(?:zaciat|pociat|initial|start))[^\n]*\b5\b', ignore_case: true, fold_diacritics: true }
+            - stdout_matches: { pattern: '(?:(?:spotreb|consum)\w*[^\n:]*(?:kysl|oxyg)|(?:kysl|oxyg)\w*[^\n:]*(?:spotreb|consum))[^\n]*\b4\b', ignore_case: true, fold_diacritics: true }
+            - stdout_matches: { pattern: '(?:(?:zostav|remain|left)\w*[^\n:]*(?:kysl|oxyg)|(?:kysl|oxyg)\w*[^\n:]*(?:zostav|remain|left))[^\n]*\b1\b', ignore_case: true, fold_diacritics: true }
+- id: stat-storm-percent
+  title: { sk: Percento zaokrúhlené na dve desatinné miesta, en: Percentage rounded to two decimals }
+  group: statistics
+  run:
+    args: [ --crew, '2', --days, '3', --food, '6', --oxygen, '12', --solar-storm, '2', --non-interactive ]
+  expect:
+    - exit_code: 0
+    - stdout_matches: { pattern: '(?:dokonc|odsimul|complet|simulat|finish)[^\n]*\b2\s*(?:/|z|of)\s*3\b', ignore_case: true, fold_diacritics: true }
+    - stdout_matches: { pattern: \b66\.67\s*%, ignore_case: true, fold_diacritics: true }
+      hidden: true
+- id: stat-zero-food
+  title: { sk: 'Nulové zásoby jedla: misia nezačne', en: 'Zero food: the mission cannot start' }
+  group: statistics
+  run:
+    args: [ --crew, '1', --days, '1', --food, '0', --oxygen, '100', --non-interactive ]
+  expect:
+    - exit_code: 0
+    - stdout_matches: *failure_wording
+    - stdout_matches: { pattern: '(?:dokonc|odsimul|complet|simulat|finish)[^\n]*\b0\s*(?:/|z|of)\s*1\b', ignore_case: true, fold_diacritics: true }
+    - stdout_matches: { pattern: \b0\.00\s*%, ignore_case: true, fold_diacritics: true }
+    - any_of:
+        - stdout_matches: { pattern: '(?:jedl|food)[^\n]*\b0\b[^\n]*\b0\b[^\n]*\b0\b', ignore_case: true, fold_diacritics: true }
+        - all_of:
+            - stdout_matches: { pattern: '(?:(?:zaciat|pociat|initial|start)\w*[^\n:]*(?:jedl|food)|(?:jedl|food)\w*[^\n:]*(?:zaciat|pociat|initial|start))[^\n]*\b0\b', ignore_case: true, fold_diacritics: true }
+            - stdout_matches: { pattern: '(?:(?:spotreb|consum)\w*[^\n:]*(?:jedl|food)|(?:jedl|food)\w*[^\n:]*(?:spotreb|consum))[^\n]*\b0\b', ignore_case: true, fold_diacritics: true }
+            - stdout_matches: *food_left_0

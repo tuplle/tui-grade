@@ -1,0 +1,169 @@
+# Group "simulation": daily consumption, solar storm and exhausted supplies.
+
+# The sample of the README: 2 crew, 1 food and 2 oxygen per person and day.
+- id: sim-basic
+  title: { sk: 'Základná misia: denná spotreba', en: 'Basic mission: daily consumption' }
+  group: simulation
+  weight: 3
+  run:
+    args: [ --crew, '2', --days, '3', --food, '6', --oxygen, '12', --non-interactive ]
+  expect:
+    - exit_code: 0
+    - stdout_matches: { pattern: (?:den|day)\s*1\s*(?:/|z|of)\s*3\b, ignore_case: true, fold_diacritics: true }
+    - stdout_matches: { pattern: (?:den|day)\s*2\s*(?:/|z|of)\s*3\b, ignore_case: true, fold_diacritics: true }
+    - stdout_matches: { pattern: (?:den|day)\s*3\s*(?:/|z|of)\s*3\b, ignore_case: true, fold_diacritics: true }
+    - stdout_matches: &food_used_2 { pattern: '(?:(?:spotreb|consum)\w*[^\n:]*(?:jedl|food)|(?:jedl|food)\w*[^\n:]*(?:spotreb|consum))[^\n]*\b2\b', ignore_case: true, fold_diacritics: true }
+    - stdout_matches: &oxygen_used_4 { pattern: '(?:(?:spotreb|consum)\w*[^\n:]*(?:kysl|oxyg)|(?:kysl|oxyg)\w*[^\n:]*(?:spotreb|consum))[^\n]*\b4\b', ignore_case: true, fold_diacritics: true }
+    - stdout_matches: { pattern: '(?:(?:zostav|remain|left)\w*[^\n:]*(?:jedl|food)|(?:jedl|food)\w*[^\n:]*(?:zostav|remain|left))[^\n]*\b4\b', ignore_case: true, fold_diacritics: true }
+    - stdout_matches: &oxygen_left_8 { pattern: '(?:(?:zostav|remain|left)\w*[^\n:]*(?:kysl|oxyg)|(?:kysl|oxyg)\w*[^\n:]*(?:zostav|remain|left))[^\n]*\b8\b', ignore_case: true, fold_diacritics: true }
+# The hangs fixture of the acceptance suite loops forever when --days is 5.
+- id: sim-long
+  title: { sk: Päťdňová misia, en: Five-day mission }
+  group: simulation
+  run:
+    args: [ --crew, '1', --days, '5', --food, '5', --oxygen, '10', --non-interactive ]
+  expect:
+    - exit_code: 0
+    - stdout_matches: { pattern: (?:den|day)\s*5\s*(?:/|z|of)\s*5\b, ignore_case: true, fold_diacritics: true }
+    - stdout_matches: &success_wording { pattern: \buspesne\s+dokonc|\bsuccessful|\bsuccessfully|mission\s+(?:was\s+)?complete, ignore_case: true, fold_diacritics: true }
+    - any_of:
+        - stdout_matches: { pattern: '(?:jedl|food)[^\n]*\b5\b[^\n]*\b5\b[^\n]*\b0\b', ignore_case: true, fold_diacritics: true }
+        - all_of:
+            - stdout_matches: { pattern: '(?:(?:zaciat|pociat|initial|start)\w*[^\n:]*(?:jedl|food)|(?:jedl|food)\w*[^\n:]*(?:zaciat|pociat|initial|start))[^\n]*\b5\b', ignore_case: true, fold_diacritics: true }
+            - stdout_matches: { pattern: '(?:(?:spotreb|consum)\w*[^\n:]*(?:jedl|food)|(?:jedl|food)\w*[^\n:]*(?:spotreb|consum))[^\n]*\b5\b', ignore_case: true, fold_diacritics: true }
+            - stdout_matches: &food_left_0 { pattern: '(?:(?:zostav|remain|left)\w*[^\n:]*(?:jedl|food)|(?:jedl|food)\w*[^\n:]*(?:zostav|remain|left))[^\n]*\b0\b', ignore_case: true, fold_diacritics: true }
+# Zero supplies after the last day is not a failure.
+- id: sim-exact-zero
+  title: { sk: 'Zásoby sa minú presne na konci: úspech', en: 'Supplies run out exactly at the end: success' }
+  group: simulation
+  weight: 2
+  run:
+    args: [ --crew, '3', --days, '4', --food, '12', --oxygen, '24', --non-interactive ]
+  expect:
+    - exit_code: 0
+    - stdout_matches: *success_wording
+    - stdout_matches: { pattern: '(?:dokonc|odsimul|complet|simulat|finish)[^\n]*\b4\s*(?:/|z|of)\s*4\b', ignore_case: true, fold_diacritics: true }
+    - any_of:
+        - stdout_matches: { pattern: '(?:jedl|food)[^\n]*\b12\b[^\n]*\b12\b[^\n]*\b0\b', ignore_case: true, fold_diacritics: true }
+        - all_of:
+            - stdout_matches: { pattern: '(?:(?:zaciat|pociat|initial|start)\w*[^\n:]*(?:jedl|food)|(?:jedl|food)\w*[^\n:]*(?:zaciat|pociat|initial|start))[^\n]*\b12\b', ignore_case: true, fold_diacritics: true }
+            - stdout_matches: { pattern: '(?:(?:spotreb|consum)\w*[^\n:]*(?:jedl|food)|(?:jedl|food)\w*[^\n:]*(?:spotreb|consum))[^\n]*\b12\b', ignore_case: true, fold_diacritics: true }
+            - stdout_matches: *food_left_0
+    - any_of:
+        - stdout_matches: { pattern: '(?:kysl|oxyg)[^\n]*\b24\b[^\n]*\b24\b[^\n]*\b0\b', ignore_case: true, fold_diacritics: true }
+        - all_of:
+            - stdout_matches: &oxygen_start_24 { pattern: '(?:(?:zaciat|pociat|initial|start)\w*[^\n:]*(?:kysl|oxyg)|(?:kysl|oxyg)\w*[^\n:]*(?:zaciat|pociat|initial|start))[^\n]*\b24\b', ignore_case: true, fold_diacritics: true }
+            - stdout_matches: { pattern: '(?:(?:spotreb|consum)\w*[^\n:]*(?:kysl|oxyg)|(?:kysl|oxyg)\w*[^\n:]*(?:spotreb|consum))[^\n]*\b24\b', ignore_case: true, fold_diacritics: true }
+            - stdout_matches: &oxygen_left_0 { pattern: '(?:(?:zostav|remain|left)\w*[^\n:]*(?:kysl|oxyg)|(?:kysl|oxyg)\w*[^\n:]*(?:zostav|remain|left))[^\n]*\b0\b', ignore_case: true, fold_diacritics: true }
+    - stdout_matches: &failure_wording { pattern: zlyhani|\bfail(?:ed|ure)\b|nedostat|shortage|insufficient|not enough, ignore_case: true, fold_diacritics: true }
+      not: true
+# Oxygen need is 4 + 8 + 4 = 16 whichever day the storm is; without doubling only 12 would be consumed.
+- id: sim-storm-day-${day}
+  title: { sk: 'Slnečná búrka v deň ${day}: dvojnásobná spotreba kyslíka', en: 'Solar storm on day ${day}: double oxygen consumption' }
+  group: simulation
+  weight: 1.5
+  matrix:
+    day: [ '1', '2', '3' ]
+  run:
+    args: [ --crew, '2', --days, '3', --food, '6', --oxygen, '16', --solar-storm, '${day}', --non-interactive ]
+  expect:
+    - exit_code: 0
+    - stdout_matches: *success_wording
+    - stdout_matches: { pattern: '(?:(?:spotreb|consum)\w*[^\n:]*(?:kysl|oxyg)|(?:kysl|oxyg)\w*[^\n:]*(?:spotreb|consum))[^\n]*\b8\b', ignore_case: true, fold_diacritics: true }
+    - any_of:
+        - stdout_matches: { pattern: '(?:kysl|oxyg)[^\n]*\b16\b[^\n]*\b16\b[^\n]*\b0\b', ignore_case: true, fold_diacritics: true }
+        - all_of:
+            - stdout_matches: { pattern: '(?:(?:zaciat|pociat|initial|start)\w*[^\n:]*(?:kysl|oxyg)|(?:kysl|oxyg)\w*[^\n:]*(?:zaciat|pociat|initial|start))[^\n]*\b16\b', ignore_case: true, fold_diacritics: true }
+            - stdout_matches: &oxygen_used_16 { pattern: '(?:(?:spotreb|consum)\w*[^\n:]*(?:kysl|oxyg)|(?:kysl|oxyg)\w*[^\n:]*(?:spotreb|consum))[^\n]*\b16\b', ignore_case: true, fold_diacritics: true }
+            - stdout_matches: *oxygen_left_0
+      hidden: true
+    - any_of:
+        - stdout_matches: { pattern: '(?:jedl|food)[^\n]*\b6\b[^\n]*\b6\b[^\n]*\b0\b', ignore_case: true, fold_diacritics: true }
+        - all_of:
+            - stdout_matches: { pattern: '(?:(?:zaciat|pociat|initial|start)\w*[^\n:]*(?:jedl|food)|(?:jedl|food)\w*[^\n:]*(?:zaciat|pociat|initial|start))[^\n]*\b6\b', ignore_case: true, fold_diacritics: true }
+            - stdout_matches: { pattern: '(?:(?:spotreb|consum)\w*[^\n:]*(?:jedl|food)|(?:jedl|food)\w*[^\n:]*(?:spotreb|consum))[^\n]*\b6\b', ignore_case: true, fold_diacritics: true }
+            - stdout_matches: *food_left_0
+- id: sim-storm-fail
+  title: { sk: 'Búrka vyčerpá kyslík: misia zlyhá', en: 'The storm exhausts the oxygen: mission fails' }
+  group: simulation
+  weight: 1.5
+  run:
+    args: [ --crew, '2', --days, '3', --food, '6', --oxygen, '12', --solar-storm, '2', --non-interactive ]
+  expect:
+    - exit_code: 0
+    - stdout_matches: *failure_wording
+    - stdout_matches: *success_wording
+      not: true
+    - stdout_matches: { pattern: '(?:dokonc|odsimul|complet|simulat|finish)[^\n]*\b2\s*(?:/|z|of)\s*3\b', ignore_case: true, fold_diacritics: true }
+    - any_of:
+        - stdout_matches: { pattern: '(?:kysl|oxyg)[^\n]*\b12\b[^\n]*\b12\b[^\n]*\b0\b', ignore_case: true, fold_diacritics: true }
+        - all_of:
+            - stdout_matches: { pattern: '(?:(?:zaciat|pociat|initial|start)\w*[^\n:]*(?:kysl|oxyg)|(?:kysl|oxyg)\w*[^\n:]*(?:zaciat|pociat|initial|start))[^\n]*\b12\b', ignore_case: true, fold_diacritics: true }
+            - stdout_matches: { pattern: '(?:(?:spotreb|consum)\w*[^\n:]*(?:kysl|oxyg)|(?:kysl|oxyg)\w*[^\n:]*(?:spotreb|consum))[^\n]*\b12\b', ignore_case: true, fold_diacritics: true }
+            - stdout_matches: *oxygen_left_0
+    - stdout_matches: &lacking_oxygen { pattern: '(?:(?:chyb|nedostat|insufficient|not enough|lack|missing|shortage)[^\n]*(?:kysl|oxyg)|(?:kysl|oxyg)[^\n]*(?:chyb|nedostat|insufficient|not enough|lack|missing|shortage))', ignore_case: true, fold_diacritics: true }
+# The storm day is random, so only invariants are asserted: with 24 oxygen the mission always succeeds and exactly one storm day consumes 16 in total.
+- id: sim-storm-random-last
+  title: { sk: 'Náhodná búrka: --solar-storm bez hodnoty na konci', en: 'Random storm: --solar-storm without a value, last' }
+  group: simulation
+  run:
+    args: [ --crew, '2', --days, '3', --food, '6', --oxygen, '24', --non-interactive, --solar-storm ]
+  expect:
+    - exit_code: 0
+    - stdout_matches: &any_percent { pattern: '\d+\.\d{2}\s*%', ignore_case: true, fold_diacritics: true }
+    - stdout_matches: *success_wording
+    - any_of: &random_storm_oxygen_totals
+        - stdout_matches: { pattern: '(?:kysl|oxyg)[^\n]*\b24\b[^\n]*\b16\b[^\n]*\b8\b', ignore_case: true, fold_diacritics: true }
+        - all_of:
+            - stdout_matches: *oxygen_start_24
+            - stdout_matches: *oxygen_used_16
+            - stdout_matches: *oxygen_left_8
+# Same invariants; the flag is followed by another option, which must not be taken as its value.
+- id: sim-storm-random-first
+  title: { sk: 'Náhodná búrka: --solar-storm bez hodnoty pred ďalším argumentom', en: 'Random storm: --solar-storm without a value, before another option' }
+  group: simulation
+  run:
+    args: [ --solar-storm, --crew, '2', --days, '3', --food, '6', --oxygen, '24', --non-interactive ]
+  expect:
+    - exit_code: 0
+    - stdout_matches: *any_percent
+    - stdout_matches: *success_wording
+    - any_of: *random_storm_oxygen_totals
+- id: sim-lack-food
+  title: { sk: Nedostatok jedla pred druhým dňom, en: Not enough food before day 2 }
+  group: simulation
+  weight: 1.5
+  run:
+    args: [ --crew, '2', --days, '3', --food, '3', --oxygen, '100', --non-interactive ]
+  expect:
+    - exit_code: 0
+    - stdout_matches: *failure_wording
+    - stdout_matches: *success_wording
+      not: true
+    - stdout_matches: &completed_1_of_3 { pattern: '(?:dokonc|odsimul|complet|simulat|finish)[^\n]*\b1\s*(?:/|z|of)\s*3\b', ignore_case: true, fold_diacritics: true }
+    - stdout_matches: { pattern: '(?:(?:chyb|nedostat|insufficient|not enough|lack|missing|shortage)[^\n]*(?:jedl|food)|(?:jedl|food)[^\n]*(?:chyb|nedostat|insufficient|not enough|lack|missing|shortage))', ignore_case: true, fold_diacritics: true }
+    - any_of:
+        - stdout_matches: { pattern: '(?:jedl|food)[^\n]*\b3\b[^\n]*\b2\b[^\n]*\b1\b', ignore_case: true, fold_diacritics: true }
+        - all_of:
+            - stdout_matches: { pattern: '(?:(?:zaciat|pociat|initial|start)\w*[^\n:]*(?:jedl|food)|(?:jedl|food)\w*[^\n:]*(?:zaciat|pociat|initial|start))[^\n]*\b3\b', ignore_case: true, fold_diacritics: true }
+            - stdout_matches: *food_used_2
+            - stdout_matches: { pattern: '(?:(?:zostav|remain|left)\w*[^\n:]*(?:jedl|food)|(?:jedl|food)\w*[^\n:]*(?:zostav|remain|left))[^\n]*\b1\b', ignore_case: true, fold_diacritics: true }
+- id: sim-lack-oxygen
+  title: { sk: Nedostatok kyslíka pred druhým dňom, en: Not enough oxygen before day 2 }
+  group: simulation
+  weight: 1.5
+  run:
+    args: [ --crew, '2', --days, '3', --food, '100', --oxygen, '6', --non-interactive ]
+  expect:
+    - exit_code: 0
+    - stdout_matches: *failure_wording
+    - stdout_matches: *success_wording
+      not: true
+    - stdout_matches: *completed_1_of_3
+    - stdout_matches: *lacking_oxygen
+    - any_of:
+        - stdout_matches: { pattern: '(?:kysl|oxyg)[^\n]*\b6\b[^\n]*\b4\b[^\n]*\b2\b', ignore_case: true, fold_diacritics: true }
+        - all_of:
+            - stdout_matches: { pattern: '(?:(?:zaciat|pociat|initial|start)\w*[^\n:]*(?:kysl|oxyg)|(?:kysl|oxyg)\w*[^\n:]*(?:zaciat|pociat|initial|start))[^\n]*\b6\b', ignore_case: true, fold_diacritics: true }
+            - stdout_matches: *oxygen_used_4
+            - stdout_matches: { pattern: '(?:(?:zostav|remain|left)\w*[^\n:]*(?:kysl|oxyg)|(?:kysl|oxyg)\w*[^\n:]*(?:zostav|remain|left))[^\n]*\b2\b', ignore_case: true, fold_diacritics: true }

@@ -1,0 +1,22 @@
+# Group "build": project structure, compilation and runnability.
+
+# Static checks need no step (and keep scoring when the build fails).
+- id: build-structure
+  title: { sk: 'Štruktúra projektu: aspoň 5 vlastných funkcií', en: 'Project structure: at least 5 functions' }
+  group: build
+  expect:
+    - function_count: { file: src/main.c, min: 5 }
+    - file_line_count: { file: src/main.c, min: 20 }
+- id: build-compiles
+  title: { sk: Preklad bez varovaní (-Wall -Wextra), en: Compiles without warnings (-Wall -Wextra) }
+  group: build
+  expect:
+    - no_compiler_warnings: true
+- id: build-runnable
+  title: { sk: Program sa dá spustiť, en: The program can be started }
+  group: build
+  run:
+    args: [ --crew, '1', --days, '1', --food, '1', --oxygen, '2', --non-interactive ]
+  expect:
+    - exit_code: 0
+    - stdout_matches: \S

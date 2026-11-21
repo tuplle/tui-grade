@@ -1,0 +1,3 @@
+- [Home](README.md)
+- [GitHub](https://github.com/tuplle/tui-grade)
+- [Releases](https://github.com/tuplle/tui-grade/releases)

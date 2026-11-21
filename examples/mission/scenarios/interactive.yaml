@@ -1,0 +1,155 @@
+# Group "interactive": the continue/stop dialogue, EOF and --non-interactive.
+
+- id: int-all-yes
+  title: { sk: Pokračovanie odpoveďami y a Y, en: Continuing with answers y and Y }
+  group: interactive
+  weight: 1.5
+  run:
+    args: [ --crew, '2', --days, '3', --food, '6', --oxygen, '12' ]
+    stdin: |
+      y
+      Y
+  expect:
+    - exit_code: 0
+    - stdout_matches: &success_wording { pattern: \buspesne\s+dokonc|\bsuccessful|\bsuccessfully|mission\s+(?:was\s+)?complete, ignore_case: true, fold_diacritics: true }
+    - stdout_matches: &completed_3_of_3 { pattern: '(?:dokonc|odsimul|complet|simulat|finish)[^\n]*\b3\s*(?:/|z|of)\s*3\b', ignore_case: true, fold_diacritics: true }
+    - stdout_matches: &percent_100_00 { pattern: \b100\.00\s*%, ignore_case: true, fold_diacritics: true }
+    - stdout_matches: &prompts_at_least_2 { pattern: '(?:\[y/n\][\s\S]*){2}', ignore_case: true }
+    - stdout_matches: { pattern: '(?:\[y/n\][\s\S]*){3}', ignore_case: true }
+      not: true
+- id: int-stop-${answer}
+  title: { sk: 'Predčasné ukončenie odpoveďou ${answer}', en: 'Early stop with the answer ${answer}' }
+  group: interactive
+  weight: 0.75
+  matrix:
+    answer: [ n, N ]
+  run:
+    args: [ --crew, '2', --days, '3', --food, '6', --oxygen, '12' ]
+    stdin: |
+      ${answer}
+  expect:
+    - exit_code: 0
+    - stdout_matches: &early_stop_wording { pattern: predcas|\bearly|aborted|stopped|cancel, ignore_case: true, fold_diacritics: true }
+    - stdout_matches: *success_wording
+      not: true
+    - stdout_matches: &completed_1_of_3 { pattern: '(?:dokonc|odsimul|complet|simulat|finish)[^\n]*\b1\s*(?:/|z|of)\s*3\b', ignore_case: true, fold_diacritics: true }
+    - stdout_matches: &percent_33_33 { pattern: \b33\.33\s*%, ignore_case: true, fold_diacritics: true }
+    - stdout_matches: { pattern: (?:den|day)\s*2\s*(?:/|z|of)\s*3\b, ignore_case: true, fold_diacritics: true }
+      not: true
+    - stdout_matches: *prompts_at_least_2
+      not: true
+- id: int-stop-day-2
+  title: { sk: Ukončenie po druhom dni, en: Stop after the second day }
+  group: interactive
+  weight: 0.75
+  run:
+    args: [ --crew, '2', --days, '3', --food, '6', --oxygen, '12' ]
+    stdin: |
+      y
+      n
+  expect:
+    - exit_code: 0
+    - stdout_matches: *early_stop_wording
+    - stdout_matches: &completed_2_of_3 { pattern: '(?:dokonc|odsimul|complet|simulat|finish)[^\n]*\b2\s*(?:/|z|of)\s*3\b', ignore_case: true, fold_diacritics: true }
+    - stdout_matches: { pattern: \b66\.67\s*%, ignore_case: true, fold_diacritics: true }
+    - stdout_matches: *prompts_at_least_2
+# Two invalid answers, then two valid ones: the question is repeated for each invalid answer (at least four occurrences; a warning may repeat the marker) and the mission completes.
+- id: int-invalid-answer
+  title: { sk: Neplatná odpoveď zopakuje otázku, en: An invalid answer repeats the question }
+  group: interactive
+  weight: 1.5
+  run:
+    args: [ --crew, '2', --days, '3', --food, '6', --oxygen, '12' ]
+    stdin: |
+      x
+      5
+      y
+      y
+  expect:
+    - exit_code: 0
+    - stdout_matches: *success_wording
+    - stdout_matches: *completed_3_of_3
+    - stdout_matches: { pattern: '(?:\[y/n\][\s\S]*){4}', ignore_case: true }
+- id: int-eof-immediate
+  title: { sk: Koniec vstupu pri prvej otázke, en: End of input at the first question }
+  group: interactive
+  weight: 1.5
+  run:
+    args: [ --crew, '2', --days, '3', --food, '6', --oxygen, '12' ]
+    stdin: closed
+  expect:
+    - exit_code: 0
+    - stdout_matches: *early_stop_wording
+    - stdout_matches: *completed_1_of_3
+    - stdout_matches: *percent_33_33
+- id: int-eof-after-y
+  title: { sk: Koniec vstupu po jednej odpovedi, en: End of input after one answer }
+  group: interactive
+  run:
+    args: [ --crew, '2', --days, '3', --food, '6', --oxygen, '12' ]
+    stdin: |
+      y
+  expect:
+    - exit_code: 0
+    - stdout_matches: *early_stop_wording
+    - stdout_matches: *completed_2_of_3
+- id: int-non-interactive-no-question
+  title: { sk: --non-interactive sa nikdy nepýta, en: --non-interactive never asks }
+  group: interactive
+  weight: 1.5
+  run:
+    args: [ --crew, '2', --days, '3', --food, '6', --oxygen, '12', --non-interactive ]
+    stdin: |
+      y
+      y
+  expect:
+    - exit_code: 0
+    - stdout_matches: *success_wording
+    - stdout_contains: &question_marker { text: '[y/n]', ignore_case: true }
+      not: true
+- id: int-last-day-no-question
+  title: { sk: Po poslednom dni sa program nepýta, en: No question after the last day }
+  group: interactive
+  run:
+    args: [ --crew, '1', --days, '1', --food, '1', --oxygen, '2' ]
+    stdin: closed
+  expect:
+    - exit_code: 0
+    - stdout_matches: *success_wording
+    - stdout_matches: *percent_100_00
+    - stdout_contains: *question_marker
+      not: true
+# The same question driven through a real terminal: wait for the prompt, answer, let the program finish.
+- id: int-session-continue
+  title: { sk: 'Terminál (PTY): odpoveď y na otázku', en: 'Terminal (PTY): answering y' }
+  group: interactive
+  weight: 1.5
+  session:
+    args: [ --crew, '2', --days, '2', --food, '4', --oxygen, '8' ]
+    rows: 40
+    cols: 100
+    steps:
+      - expect_screen: &prompt_wait { pattern: '\[y/n\]', timeout: 3 }
+      - send: y
+      - wait_exit: { timeout: 3 }
+  expect:
+    - exit_code: 0
+    - screen_matches: { pattern: 100\.00\s*%, ignore_case: true, fold_diacritics: true }
+    - screen_contains: *question_marker
+    - screen_matches: { pattern: (?:den|day)\s*2\s*(?:/|z|of)\s*2\b, ignore_case: true, fold_diacritics: true }
+- id: int-session-stop
+  title: { sk: 'Terminál (PTY): odpoveď n a Enter', en: 'Terminal (PTY): answering n and Enter' }
+  group: interactive
+  weight: 1
+  session:
+    args: [ --crew, '2', --days, '3', --food, '6', --oxygen, '12' ]
+    rows: 40
+    cols: 100
+    steps:
+      - expect_screen: *prompt_wait
+      - type: n
+      - press: Enter
+      - wait_exit: { timeout: 3 }
+  expect:
+    - exit_code: 0
+    - screen_matches: { pattern: 33\.33\s*%, ignore_case: true, fold_diacritics: true }

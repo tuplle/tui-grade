@@ -1,0 +1,6 @@
+- id: one
+  title: One
+  steps:
+    - bogus: {}
+  run: {}
+  expect: []

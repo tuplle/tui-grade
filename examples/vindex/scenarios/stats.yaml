@@ -1,0 +1,43 @@
+# Group "stats": `stats` of an empty index and of the index of story.txt + notes.txt
+# (16 unique words, 2 files, top words: the 7, fox 4, dog 2).
+
+- id: stats-empty
+  title: { sk: Štatistiky prázdneho indexu, en: Statistics of an empty index }
+  group: stats
+  weight: 1
+  run:
+    args: [ stats ]
+  expect:
+    - exit_code: 0
+    - stdout_matches: { pattern: '(?:word|slov)[^\n]*\b0\b', ignore_case: true, fold_diacritics: true }
+    - stdout_matches: { pattern: '(?:file|subor)[^\n]*\b0\b', ignore_case: true, fold_diacritics: true }
+- id: stats-counts-and-files
+  title: { sk: Počet unikátnych slov a zoznam súborov, en: Unique word count and the list of files }
+  group: stats
+  weight: 2
+  steps:
+    - copy: story.txt
+    - copy: notes.txt
+    - index_file: { file: story.txt }
+    - index_file: { file: notes.txt }
+    - run: { args: [ stats ] }
+  expect:
+    - exit_code: 0
+    - stdout_matches: { pattern: '(?:word|slov)[^\n]*\b16\b', ignore_case: true, fold_diacritics: true }
+    - stdout_matches: { pattern: '(?:file|subor)[^\n]*\b2\b', ignore_case: true, fold_diacritics: true }
+    - stdout_contains: story.txt
+    - stdout_contains: notes.txt
+# The ranking by frequency; words with equal counts may come in any order, so only the first three are pinned down.
+- id: stats-top-words
+  title: { sk: Najčastejšie slová v poradí podľa frekvencie, en: The most frequent words ranked by frequency }
+  group: stats
+  weight: 2
+  steps:
+    - copy: story.txt
+    - copy: notes.txt
+    - index_file: { file: story.txt }
+    - index_file: { file: notes.txt }
+    - run: { args: [ stats ] }
+  expect:
+    - exit_code: 0
+    - stdout_matches: '\bthe\b[^\n]*\b7\b[\s\S]*\bfox\b[^\n]*\b4\b[\s\S]*\bdog\b[^\n]*\b2\b'

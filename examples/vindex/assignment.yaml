@@ -1,0 +1,53 @@
+# DSA 2026, semester project 2: VINDEX (a C++17 word index on a trie).
+# Port of the hand-written tui-test project of the course: the setup helper `indexFile` became the user plugin
+# in plugins/ (step `index_file`), the book texts were replaced by small purpose-made files in fixtures/.
+# The grading table: 2 + 5 + 4 + 3 + 2 + 4 = 20 points (4 points of code quality are graded manually).
+name: vindex
+max_points: 20
+locale: sk
+
+build:
+  type: gcc
+  sources: [src/main.cpp]
+  output: bin/vindex
+  std: c++17
+binary: bin/vindex
+project_root_marker: src/main.cpp
+
+scoring:
+  use: proportional
+  rounding: ceil
+  cap: true
+
+limits:
+  build_timeout_sec: 60
+  run_timeout_sec: 5
+
+plugins:
+  - ./plugins/index-file.js
+
+groups:
+  - id: build
+    title: { sk: 'Kompilácia, štruktúra projektu a nápoveda', en: 'Compilation, project structure and help' }
+    points: 2
+    requires_build: false
+  - id: index
+    title: { sk: 'Indexovanie súborov: príkaz index', en: 'Indexing files: command index' }
+    points: 5
+    requires_build: true
+  - id: search
+    title: { sk: 'Vyhľadávanie slov: príkaz search', en: 'Searching words: command search' }
+    points: 4
+    requires_build: true
+  - id: stats
+    title: { sk: 'Štatistiky indexu: príkaz stats', en: 'Index statistics: command stats' }
+    points: 3
+    requires_build: true
+  - id: clear
+    title: { sk: 'Vyčistenie indexu: príkaz clear', en: 'Clearing the index: command clear' }
+    points: 2
+    requires_build: true
+  - id: quality
+    title: { sk: 'Implementácia trie, kolekcie, funkcie a komunikácia chýb', en: 'Trie implementation, collections, functions and error communication' }
+    points: 4
+    manual: true

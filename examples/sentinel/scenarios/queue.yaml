@@ -1,0 +1,122 @@
+# Group "queue": `count` and `fix` (the Y/N dialogue is fed through stdin).
+
+- id: q-count-empty
+  title: { sk: Počet incidentov v prázdnej fronte, en: Count of an empty queue }
+  group: queue
+  weight: 1
+  run:
+    args: [ count ]
+  expect:
+    - exit_code: 0
+    - stdout_matches: { pattern: '\b0\b' }
+- id: q-count-three
+  title: { sk: Počet troch incidentov, en: Count of three incidents }
+  group: queue
+  weight: 1
+  steps:
+    - insert_device: { name: PC, ip: 192.168.10.1 }
+    - insert_incident: { ip: 192.168.10.1, type: ddos }
+    - insert_incident: { ip: 192.168.10.1, type: xss }
+    - insert_incident: { ip: 192.168.10.1, type: unknown }
+    - run: { args: [ count ] }
+  expect:
+    - exit_code: 0
+    - stdout_matches: { pattern: '\b3\b' }
+
+- id: q-fix-empty
+  title: { sk: Vyriešenie incidentu pri prázdnej fronte, en: Fixing with an empty queue }
+  group: queue
+  weight: 1
+  run:
+    args: [ fix ]
+    stdin: closed
+  expect:
+    - exit_code: 0
+    - stdout_matches: &has_text \S
+    - file_empty: incidenty.txt
+- id: q-fix-details
+  title: { sk: Fix vypíše údaje o incidente a zariadení, en: Fix prints the incident and the device }
+  group: queue
+  weight: 1.5
+  steps:
+    - insert_device: { name: PC, ip: 192.168.10.1 }
+    - insert_incident: { ip: 192.168.10.1, type: sql_injection }
+    - run: { args: [ fix ], stdin: "n\n" }
+  expect:
+    - exit_code: 0
+    - stdout_contains: 192.168.10.1
+    # the type is named by its identifier or by its long name (the assignment lists both: "sql_injection - SQL Injection")
+    - any_of:
+        - stdout_contains: { text: sql_injection, ignore_case: true }
+        - stdout_contains: { text: sql injection, ignore_case: true }
+    - stdout_contains: PC
+# Answer Y (either case) resolves the incident: it leaves the queue file.
+- id: q-fix-yes-${answer}
+  title: { sk: 'Odpoveď ${answer} incident vyrieši', en: 'The answer ${answer} resolves the incident' }
+  group: queue
+  weight: 1.5
+  matrix:
+    answer: [ y, Y ]
+  steps:
+    - insert_device: { name: PC, ip: 192.168.10.1 }
+    - insert_incident: { ip: 192.168.10.1, type: ddos }
+    - run: { args: [ fix ], stdin: "${answer}\n" }
+  expect:
+    - exit_code: 0
+    - stdout_contains: 192.168.10.1
+    - any_of: &ddos_named
+        - stdout_contains: { text: ddos, ignore_case: true }
+        - stdout_contains: { text: distributed denial, ignore_case: true }
+    - file_empty: incidenty.txt
+- id: q-fix-no-${answer}
+  title: { sk: 'Odpoveď ${answer} incident ponechá', en: 'The answer ${answer} keeps the incident' }
+  group: queue
+  weight: 1
+  matrix:
+    answer: [ n, N ]
+  steps:
+    - insert_device: { name: PC, ip: 192.168.10.1 }
+    - insert_incident: { ip: 192.168.10.1, type: ddos }
+    - run: { args: [ fix ], stdin: "${answer}\n" }
+  expect:
+    - exit_code: 0
+    - file_contains: { path: incidenty.txt, text: 192.168.10.1 }
+    - file_contains: { path: incidenty.txt, text: ddos }
+# An invalid answer is reported and the question is asked again. The wording is free, so the question is recognised by
+# its answer hint (Y/N, A/N, Y or N, Y alebo N, [Y]es/[N]o, ano/nie) and must show up at least twice. The behaviour is
+# checked too: the valid answer after the invalid one is still read and resolves the incident.
+- id: q-fix-invalid-answer
+  title: { sk: Neplatná odpoveď zopakuje otázku, en: An invalid answer repeats the question }
+  group: queue
+  weight: 2
+  steps:
+    - insert_device: { name: PC, ip: 192.168.10.1 }
+    - insert_incident: { ip: 192.168.10.1, type: ddos }
+    - run: { args: [ fix ], stdin: "X\ny\n" }
+  expect:
+    - exit_code: 0
+    - stdout_matches: { pattern: 'neplatn|nespr[aá]vn|invalid|wrong|incorrect|not valid|bad input|error|chyb', ignore_case: true, fold_diacritics: true }
+    - stdout_matches: { pattern: '(?:\b(?:y|a|yes|ano)\]?(?:es)?\W{0,3}(?:/|\||or|alebo|,)?\W{0,3}\b(?:n|no|nie)\b[\s\S]*){2}', ignore_case: true }
+    - file_empty: incidenty.txt
+# FIFO: the first queued incident is fixed first and the other one stays.
+- id: q-fix-fifo
+  title: { sk: Fronta je FIFO, en: The queue is FIFO }
+  group: queue
+  weight: 2
+  steps:
+    - insert_device: { name: PC, ip: 192.168.10.1 }
+    - insert_incident: { ip: 192.168.10.1, type: ddos }
+    - insert_incident: { ip: 192.168.10.1, type: xss }
+    - id: fix
+      run: { args: [ fix ], stdin: "y\n" }
+    - run: { args: [ count ] }
+  expect:
+    - from: fix
+      any_of: *ddos_named
+    - from: fix
+      stdout_contains: { text: xss, ignore_case: true }
+      not: true
+    - file_contains: { path: incidenty.txt, text: xss }
+    - file_contains: { path: incidenty.txt, text: ddos }
+      not: true
+    - stdout_matches: { pattern: '\b1\b' }

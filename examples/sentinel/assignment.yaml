@@ -1,0 +1,51 @@
+# DSA 2026, semester project 1: SENTINEL (a C++17 command-line tool for network incidents).
+# Port of the hand-written tui-test project of the course: the setup helpers `insertDevice`/`insertIncident`
+# became the user plugins in plugins/ (steps `insert_device` and `insert_incident`).
+# The grading table: 2 + 5 + 5 + 4 + 4 = 20 points (4 points of code quality are graded manually).
+name: sentinel
+max_points: 20
+locale: sk
+
+build:
+  type: gcc
+  sources: [src/main.cpp]
+  output: bin/sentinel
+  std: c++17
+binary: bin/sentinel
+project_root_marker: src/main.cpp
+
+scoring:
+  use: proportional
+  rounding: ceil
+  cap: true
+
+limits:
+  build_timeout_sec: 60
+  run_timeout_sec: 5
+
+# User plugins: plain ES modules next to the assignment, they add steps the built-in presets do not have.
+plugins:
+  - ./plugins/insert-device.js
+  - ./plugins/insert-incident.js
+
+groups:
+  - id: build
+    title: { sk: 'Kompilácia, štruktúra projektu a nápoveda', en: 'Compilation, project structure and help' }
+    points: 2
+    requires_build: false
+  - id: devices
+    title: { sk: 'Zariadenia: príkazy new a list', en: 'Devices: commands new and list' }
+    points: 5
+    requires_build: true
+  - id: incidents
+    title: { sk: 'Incidenty: príkaz add', en: 'Incidents: command add' }
+    points: 5
+    requires_build: true
+  - id: queue
+    title: { sk: 'Fronta incidentov: príkazy fix a count', en: 'Incident queue: commands fix and count' }
+    points: 4
+    requires_build: true
+  - id: quality
+    title: { sk: 'Kolekcie, triedy, rozdelenie do funkcií a komunikácia chýb', en: 'Collections, classes, functions and error communication' }
+    points: 4
+    manual: true

@@ -1,0 +1,26 @@
+# Group "build": project structure, compilation and the help text.
+
+# Static checks need no step (and keep scoring when the build fails).
+- id: build-structure
+  title: { sk: 'Štruktúra projektu: viacero vlastných funkcií', en: 'Project structure: several own functions' }
+  group: build
+  expect:
+    - function_count: { file: src/main.cpp, min: 3 }
+    - file_line_count: { file: src/main.cpp, min: 30 }
+- id: build-compiles
+  title: { sk: Preklad bez varovaní (-Wall -Wextra), en: Compiles without warnings (-Wall -Wextra) }
+  group: build
+  expect:
+    - no_compiler_warnings: true
+# The pipeline of the old assignment: the help text has to contain the word Help.
+- id: build-help
+  title: { sk: Nápoveda --help, en: Help output (--help) }
+  group: build
+  run:
+    args: [ --help ]
+  expect:
+    - any_of:
+        - stdout_contains: { text: Help, ignore_case: true }
+        - stdout_contains: { text: Pomoc, ignore_case: true, fold_diacritics: true }
+        - stderr_contains: { text: Help, ignore_case: true }
+        - stderr_contains: { text: Pomoc, ignore_case: true, fold_diacritics: true }

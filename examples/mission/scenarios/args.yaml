@@ -1,0 +1,212 @@
+# Group "args": --help, argument parsing and validation errors.
+
+# The README requires the exact word Help (or Pomoc).
+- id: args-help
+  title: { sk: Nápoveda --help, en: Help output (--help) }
+  group: args
+  weight: 3
+  run:
+    args: [ --help ]
+  expect:
+    - any_of:
+        - stdout_contains: Help
+        - stdout_contains: Pomoc
+        - stderr_contains: Help
+        - stderr_contains: Pomoc
+    - any_of:
+        - stdout_contains: --non-interactive
+        - stderr_contains: --non-interactive
+- id: args-any-order
+  title: { sk: Argumenty v ľubovoľnom poradí, en: Arguments in any order }
+  group: args
+  weight: 3
+  run:
+    args: [ --non-interactive, --oxygen, '12', --days, '3', --crew, '2', --food, '6' ]
+  expect:
+    - exit_code: 0
+    - stdout_matches: &success_wording { pattern: \buspesne\s+dokonc|\bsuccessful|\bsuccessfully|mission\s+(?:was\s+)?complete, ignore_case: true, fold_diacritics: true }
+    - stdout_matches: &percent_100_00 { pattern: \b100\.00\s*%, ignore_case: true, fold_diacritics: true }
+- id: args-missing-crew
+  title: { sk: Chýba povinný argument --crew, en: Required argument --crew is missing }
+  group: args
+  run:
+    args: [ --days, '3', --food, '6', --oxygen, '12', --non-interactive ]
+  expect:
+    - exit_code: nonzero
+    - any_of: &has_message
+        - stderr_matches: \S
+        - stdout_matches: \S
+- id: args-missing-days
+  title: { sk: Chýba povinný argument --days, en: Required argument --days is missing }
+  group: args
+  run:
+    args: [ --crew, '2', --food, '6', --oxygen, '12', --non-interactive ]
+  expect:
+    - exit_code: nonzero
+    - any_of: *has_message
+- id: args-missing-food
+  title: { sk: Chýba povinný argument --food, en: Required argument --food is missing }
+  group: args
+  run:
+    args: [ --crew, '2', --days, '3', --oxygen, '12', --non-interactive ]
+  expect:
+    - exit_code: nonzero
+    - any_of: *has_message
+- id: args-missing-oxygen
+  title: { sk: Chýba povinný argument --oxygen, en: Required argument --oxygen is missing }
+  group: args
+  run:
+    args: [ --crew, '2', --days, '3', --food, '6', --non-interactive ]
+  expect:
+    - exit_code: nonzero
+    - any_of: *has_message
+- id: args-missing-value
+  title: { sk: Argument bez hodnoty (--oxygen na konci), en: Argument without a value (--oxygen last) }
+  group: args
+  run:
+    args: [ --crew, '2', --days, '3', --food, '6', --oxygen ]
+  expect:
+    - exit_code: nonzero
+    - any_of: *has_message
+- id: args-no-arguments
+  title: { sk: Spustenie bez argumentov, en: Started without arguments }
+  group: args
+  weight: 0.5
+  run:
+    args: []
+  expect:
+    - exit_code: nonzero
+    - any_of: *has_message
+- id: args-bad-crew-${value}
+  title: { sk: 'Neplatná hodnota --crew: ${value}', en: 'Invalid value of --crew: ${value}' }
+  group: args
+  weight: 0.25
+  matrix:
+    value: [ abc, 2x, '1.5', '0', '101' ]
+  run:
+    args: [ --crew, '${value}', --days, '3', --food, '6', --oxygen, '12', --non-interactive ]
+  expect:
+    - exit_code: nonzero
+    - any_of: *has_message
+- id: args-bad-days-${value}
+  title: { sk: 'Neplatná hodnota --days: ${value}', en: 'Invalid value of --days: ${value}' }
+  group: args
+  weight: 0.25
+  matrix:
+    value: [ abc, '0', '366' ]
+  run:
+    args: [ --crew, '2', --days, '${value}', --food, '6', --oxygen, '12', --non-interactive ]
+  expect:
+    - exit_code: nonzero
+    - any_of: *has_message
+- id: args-bad-food-${value}
+  title: { sk: 'Neplatná hodnota --food: ${value}', en: 'Invalid value of --food: ${value}' }
+  group: args
+  weight: 0.25
+  matrix:
+    value: [ abc, '-1', '1000001' ]
+  run:
+    args: [ --crew, '2', --days, '3', --food, '${value}', --oxygen, '12', --non-interactive ]
+  expect:
+    - exit_code: nonzero
+    - any_of: *has_message
+- id: args-bad-oxygen-${value}
+  title: { sk: 'Neplatná hodnota --oxygen: ${value}', en: 'Invalid value of --oxygen: ${value}' }
+  group: args
+  weight: 0.25
+  matrix:
+    value: [ abc, '-1', '1000001' ]
+  run:
+    args: [ --crew, '2', --days, '3', --food, '6', --oxygen, '${value}', --non-interactive ]
+  expect:
+    - exit_code: nonzero
+    - any_of: *has_message
+# 100 crew x 365 days: food 36500 (1 per person and day), oxygen 73000 (2 per person and day); supplies end at exactly zero.
+- id: args-accept-max-crew-days
+  title: { sk: Najvyššie povolené hodnoty --crew a --days sa prijmú, en: The highest allowed --crew and --days are accepted }
+  group: args
+  run:
+    args: [ --crew, '100', --days, '365', --food, '36500', --oxygen, '73000', --non-interactive ]
+  expect:
+    - exit_code: 0
+    - stdout_matches: *success_wording
+    - stdout_matches: { pattern: '(?:dokonc|odsimul|complet|simulat|finish)[^\n]*\b365\s*(?:/|z|of)\s*365\b', ignore_case: true, fold_diacritics: true }
+    - stdout_matches: *percent_100_00
+    - any_of:
+        - stdout_matches: { pattern: '(?:jedl|food)[^\n]*\b36500\b[^\n]*\b36500\b[^\n]*\b0\b', ignore_case: true, fold_diacritics: true }
+        - all_of:
+            - stdout_matches: { pattern: '(?:(?:zaciat|pociat|initial|start)\w*[^\n:]*(?:jedl|food)|(?:jedl|food)\w*[^\n:]*(?:zaciat|pociat|initial|start))[^\n]*\b36500\b', ignore_case: true, fold_diacritics: true }
+            - stdout_matches: { pattern: '(?:(?:spotreb|consum)\w*[^\n:]*(?:jedl|food)|(?:jedl|food)\w*[^\n:]*(?:spotreb|consum))[^\n]*\b36500\b', ignore_case: true, fold_diacritics: true }
+            - stdout_matches: { pattern: '(?:(?:zostav|remain|left)\w*[^\n:]*(?:jedl|food)|(?:jedl|food)\w*[^\n:]*(?:zostav|remain|left))[^\n]*\b0\b', ignore_case: true, fold_diacritics: true }
+    - any_of:
+        - stdout_matches: { pattern: '(?:kysl|oxyg)[^\n]*\b73000\b[^\n]*\b73000\b[^\n]*\b0\b', ignore_case: true, fold_diacritics: true }
+        - all_of:
+            - stdout_matches: { pattern: '(?:(?:zaciat|pociat|initial|start)\w*[^\n:]*(?:kysl|oxyg)|(?:kysl|oxyg)\w*[^\n:]*(?:zaciat|pociat|initial|start))[^\n]*\b73000\b', ignore_case: true, fold_diacritics: true }
+            - stdout_matches: { pattern: '(?:(?:spotreb|consum)\w*[^\n:]*(?:kysl|oxyg)|(?:kysl|oxyg)\w*[^\n:]*(?:spotreb|consum))[^\n]*\b73000\b', ignore_case: true, fold_diacritics: true }
+            - stdout_matches: { pattern: '(?:(?:zostav|remain|left)\w*[^\n:]*(?:kysl|oxyg)|(?:kysl|oxyg)\w*[^\n:]*(?:zostav|remain|left))[^\n]*\b0\b', ignore_case: true, fold_diacritics: true }
+# 1 crew x 2 days: consumed food 2, oxygen 4; remaining 999998 and 999996.
+- id: args-accept-max-supplies
+  title: { sk: Najvyššie povolené --food a --oxygen sa prijmú, en: The highest allowed --food and --oxygen are accepted }
+  group: args
+  run:
+    args: [ --crew, '1', --days, '2', --food, '1000000', --oxygen, '1000000', --non-interactive ]
+  expect:
+    - exit_code: 0
+    - stdout_matches: *success_wording
+    - stdout_matches: { pattern: '(?:dokonc|odsimul|complet|simulat|finish)[^\n]*\b2\s*(?:/|z|of)\s*2\b', ignore_case: true, fold_diacritics: true }
+    - any_of:
+        - stdout_matches: { pattern: '(?:jedl|food)[^\n]*\b1000000\b[^\n]*\b2\b[^\n]*\b999998\b', ignore_case: true, fold_diacritics: true }
+        - all_of:
+            - stdout_matches: { pattern: '(?:(?:zaciat|pociat|initial|start)\w*[^\n:]*(?:jedl|food)|(?:jedl|food)\w*[^\n:]*(?:zaciat|pociat|initial|start))[^\n]*\b1000000\b', ignore_case: true, fold_diacritics: true }
+            - stdout_matches: { pattern: '(?:(?:spotreb|consum)\w*[^\n:]*(?:jedl|food)|(?:jedl|food)\w*[^\n:]*(?:spotreb|consum))[^\n]*\b2\b', ignore_case: true, fold_diacritics: true }
+            - stdout_matches: { pattern: '(?:(?:zostav|remain|left)\w*[^\n:]*(?:jedl|food)|(?:jedl|food)\w*[^\n:]*(?:zostav|remain|left))[^\n]*\b999998\b', ignore_case: true, fold_diacritics: true }
+    - any_of:
+        - stdout_matches: { pattern: '(?:kysl|oxyg)[^\n]*\b1000000\b[^\n]*\b4\b[^\n]*\b999996\b', ignore_case: true, fold_diacritics: true }
+        - all_of:
+            - stdout_matches: { pattern: '(?:(?:zaciat|pociat|initial|start)\w*[^\n:]*(?:kysl|oxyg)|(?:kysl|oxyg)\w*[^\n:]*(?:zaciat|pociat|initial|start))[^\n]*\b1000000\b', ignore_case: true, fold_diacritics: true }
+            - stdout_matches: { pattern: '(?:(?:spotreb|consum)\w*[^\n:]*(?:kysl|oxyg)|(?:kysl|oxyg)\w*[^\n:]*(?:spotreb|consum))[^\n]*\b4\b', ignore_case: true, fold_diacritics: true }
+            - stdout_matches: { pattern: '(?:(?:zostav|remain|left)\w*[^\n:]*(?:kysl|oxyg)|(?:kysl|oxyg)\w*[^\n:]*(?:zostav|remain|left))[^\n]*\b999996\b', ignore_case: true, fold_diacritics: true }
+- id: args-storm-out-of-range-${day}
+  title: { sk: 'Slnečná búrka mimo misie: deň ${day}', en: 'Solar storm outside the mission: day ${day}' }
+  group: args
+  weight: 0.5
+  matrix:
+    day: [ '0', '4' ]
+  run:
+    args: [ --crew, '2', --days, '3', --food, '6', --oxygen, '12', --solar-storm, '${day}', --non-interactive ]
+  expect:
+    - exit_code: nonzero
+    - any_of: *has_message
+- id: args-duplicate-crew
+  title: { sk: Duplicitný argument --crew, en: Duplicate argument --crew }
+  group: args
+  run:
+    args: [ --crew, '2', --days, '3', --food, '6', --oxygen, '12', --crew, '2', --non-interactive ]
+  expect:
+    - exit_code: nonzero
+    - any_of: *has_message
+- id: args-duplicate-flag
+  title: { sk: Duplicitný prepínač --non-interactive, en: Duplicate switch --non-interactive }
+  group: args
+  run:
+    args: [ --crew, '2', --days, '3', --food, '6', --oxygen, '12', --non-interactive, --non-interactive ]
+  expect:
+    - exit_code: nonzero
+    - any_of: *has_message
+- id: args-unknown-option
+  title: { sk: Neznámy argument --turbo, en: Unknown argument --turbo }
+  group: args
+  run:
+    args: [ --crew, '2', --days, '3', --food, '6', --oxygen, '12', --turbo, --non-interactive ]
+  expect:
+    - exit_code: nonzero
+    - any_of: *has_message
+- id: args-unknown-positional
+  title: { sk: Neznámy argument bez prefixu, en: Unknown argument without prefix }
+  group: args
+  weight: 0.5
+  run:
+    args: [ --crew, '2', --days, '3', --food, '6', --oxygen, '12', extra, --non-interactive ]
+  expect:
+    - exit_code: nonzero
+    - any_of: *has_message

@@ -182,6 +182,10 @@ fabric.properties
 ### Example user template template
 ### Example user template
 
+.opencode
+.superpowers
+.openchamber
+
 # IntelliJ project files
 .idea
 *.iml
@@ -406,3 +410,10 @@ Network Trash Folder
 Temporary Items
 .apdisk
 
+grading-results/
+_site/
+graphify-out/
+
+# Standalone release bundle (scripts/make-bundle.mjs)
+bundle/
+/tui-grade-*.tar.gz

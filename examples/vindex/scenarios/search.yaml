@@ -1,0 +1,86 @@
+# Group "search": `search` over an index prepared by the user plugin step index_file.
+# story.txt and notes.txt: "fox" is 2 + 2, "the" is 5 + 2, "dog" is 2 + 0 (notes.txt has only "Dogs").
+
+- id: search-indexed
+  title: { sk: Vyhľadanie indexovaného slova, en: Searching an indexed word }
+  group: search
+  weight: 2
+  steps:
+    - copy: one-word.txt
+    - index_file: { file: one-word.txt }
+    - run: { args: [ search, ambiguous ] }
+  expect:
+    - exit_code: 0
+    - stdout_contains: one-word.txt
+    - stdout_matches: '\b1\b'
+- id: search-multiple-files
+  title: { sk: Slovo vo viacerých súboroch s počtami a súčtom, en: A word in several files with counts and a total }
+  group: search
+  weight: 2.5
+  steps:
+    - copy: story.txt
+    - copy: notes.txt
+    - index_file: { file: story.txt }
+    - index_file: { file: notes.txt }
+    - run: { args: [ search, the ] }
+  expect:
+    - exit_code: 0
+    - stdout_matches: 'story\.txt[^\n]*\b5\b'
+    - stdout_matches: 'notes\.txt[^\n]*\b2\b'
+    - stdout_matches: '\b7\b'
+- id: search-only-matching-files
+  title: { sk: 'Vypíšu sa iba súbory, v ktorých slovo je', en: 'Only the files that contain the word are listed' }
+  group: search
+  weight: 1.5
+  steps:
+    - copy: story.txt
+    - copy: notes.txt
+    - index_file: { file: story.txt }
+    - index_file: { file: notes.txt }
+    - run: { args: [ search, dog ] }
+  expect:
+    - exit_code: 0
+    - stdout_matches: 'story\.txt[^\n]*\b2\b'
+    - stdout_contains: notes.txt
+      not: true
+# Optional in the old test project; the search ignores the letter case.
+- id: search-case-insensitive-${word}
+  title: { sk: 'Vyhľadávanie nerozlišuje veľkosť písmen: ${word}', en: 'Case-insensitive search: ${word}' }
+  group: search
+  weight: 1
+  matrix:
+    word: [ AMBIGUOUS, Ambiguous ]
+  steps:
+    - copy: one-word.txt
+    - index_file: { file: one-word.txt }
+    - run: { args: [ search, '${word}' ] }
+  expect:
+    - exit_code: 0
+    - stdout_contains: one-word.txt
+    - stdout_matches: '\b1\b'
+# The not-found message must not list any file.
+- id: search-not-found
+  title: { sk: 'Slovo, ktoré v indexe nie je', en: 'A word that is not in the index' }
+  group: search
+  weight: 2
+  steps:
+    - copy: one-word.txt
+    - index_file: { file: one-word.txt }
+    - run: { args: [ search, xyz123 ] }
+  expect:
+    - any_of:
+        - stdout_matches: \S
+        - stderr_matches: \S
+    - stdout_contains: one-word.txt
+      not: true
+- id: search-no-argument
+  title: { sk: Príkaz search bez slova, en: Command search without a word }
+  group: search
+  weight: 0.5
+  run:
+    args: [ search ]
+  expect:
+    - exit_code: nonzero
+    - any_of:
+        - stderr_matches: \S
+        - stdout_matches: \S

@@ -1,0 +1,73 @@
+# EXAMPLE ONLY: a sample GitHub Actions workflow for teachers. It is documentation, not part of this repository's CI.
+# Copy it to `.github/workflows/grade.yml` of your own grading repository and adapt the paths.
+#
+# Assumed layout of that repository:
+#   assignment/    the assignment directory (assignment.yaml, scenarios/, fixtures/, ...)
+#   submissions/   one folder or .zip per student (or download them in a step of your own, see below)
+#
+# Student code is untrusted and tui-grade has no sandbox: let it run on a throwaway runner (as here) or
+# inside a container/VM, never on a machine that holds secrets. See docs/security-and-limits.md.
+name: Grade submissions
+
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'submissions/**'
+      - 'assignment/**'
+
+permissions:
+  contents: read
+
+jobs:
+  grade:
+    runs-on: ubuntu-latest # has gcc, g++ and cmake; Node.js 26 is installed below
+    steps:
+      # persist-credentials: false keeps the job's git token out of .git/config. Without it the token stays on disk for
+      # the rest of the job, where a (hostile) student program, which runs unsandboxed, could read and misuse it.
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 26
+
+      # Option A: the standalone bundle from a release of tui-grade (no npm install needed).
+      - name: Download tui-grade
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/tui-grade-dl"
+          gh release download --repo tuplle/tui-grade --pattern 'tui-grade-*-linux-x64.tar.gz' --dir "$RUNNER_TEMP/tui-grade-dl"
+          tar -xzf "$RUNNER_TEMP"/tui-grade-dl/tui-grade-*.tar.gz -C "$RUNNER_TEMP"
+          echo "$RUNNER_TEMP/tui-grade" >> "$GITHUB_PATH"
+
+      # Option B instead of the step above: take it from npm/the tarball, with `npx`:
+      #   run: npx --yes --package tui-grade tui-grade run assignment submissions --out grading-results
+      # (pnpm 10+ asks you to allow the build script of the `koffi` dependency: `allowBuilds: { koffi: false }`.)
+
+      # Fail early with readable messages when the assignment is broken; this starts no student program.
+      - name: Validate the assignment
+        run: tui-grade check assignment
+
+      # Exit codes: 0 graded, 1 invalid assignment or tool error, 2 --fail-under not met (not used here).
+      - name: Grade
+        run: tui-grade run assignment submissions --out grading-results --locale en
+        # To fail the job when somebody is below 10 points, add:  --fail-under 10
+        # To include the points of manually graded groups, add:   --manual manual-points.yaml
+
+      - name: Show the summary
+        if: always()
+        run: cat grading-results/summary.csv || true
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: grading-results
+          path: grading-results/
+          if-no-files-found: warn
+
+      # Submissions that arrive as artifacts of another workflow can be fetched before the "Grade" step with
+      #   - uses: actions/download-artifact@v4
+      #     with: { name: submissions, path: submissions }

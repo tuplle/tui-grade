@@ -1,0 +1,11 @@
+export class HttpError extends Error {
+  override name = 'HttpError';
+  readonly status: number;
+  readonly code: string;
+
+  constructor(status: number, code: string, message: string) {
+    super(message);
+    this.status = status;
+    this.code = code;
+  }
+}

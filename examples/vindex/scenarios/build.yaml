@@ -1,0 +1,31 @@
+# Group "build": project structure, compilation and the help text.
+
+- id: build-structure
+  title: { sk: 'Štruktúra projektu: viacero vlastných funkcií', en: 'Project structure: several own functions' }
+  group: build
+  expect:
+    - function_count: { file: src/main.cpp, min: 3 }
+    - file_line_count: { file: src/main.cpp, min: 50 }
+- id: build-compiles
+  title: { sk: Preklad bez varovaní (-Wall -Wextra), en: Compiles without warnings (-Wall -Wextra) }
+  group: build
+  expect:
+    - no_compiler_warnings: true
+# The pipeline of the old assignment: the help text has to contain the word Help.
+- id: build-help-${how}
+  title: { sk: 'Nápoveda (${how})', en: 'Help output (${how})' }
+  group: build
+  matrix:
+    how: [ --help, help ]
+  run:
+    args: [ '${how}' ]
+  expect:
+    - exit_code: 0
+    - any_of:
+        - stdout_contains: { text: Help, ignore_case: true }
+        - stdout_contains: { text: Pomoc, ignore_case: true, fold_diacritics: true }
+    # the help mentions every command
+    - stdout_contains: index
+    - stdout_contains: search
+    - stdout_contains: stats
+    - stdout_contains: clear

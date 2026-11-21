@@ -1,0 +1,140 @@
+# Group "devices": `new` and `list`; state file zariadenia.txt.
+
+- id: dev-new-valid
+  title: { sk: Vytvorenie platného zariadenia, en: Creating a valid device }
+  group: devices
+  weight: 2
+  run:
+    args: [ new, --name, iPhone, --ip, 192.168.1.10 ]
+  expect:
+    - exit_code: 0
+    - stdout_matches: &has_text \S
+    - file_contains: { path: zariadenia.txt, text: 192.168.1.10 }
+    - file_contains: { path: zariadenia.txt, text: iPhone }
+- id: dev-new-two
+  title: { sk: Dve zariadenia sa uložia obe, en: Two devices are both stored }
+  group: devices
+  weight: 1.5
+  steps:
+    - insert_device: { name: iPhone, ip: 192.168.1.10 }
+    - run: { args: [ new, --name, PC, --ip, 192.168.1.11 ] }
+  expect:
+    - exit_code: 0
+    - file_contains: { path: zariadenia.txt, text: 192.168.1.10 }
+    - file_contains: { path: zariadenia.txt, text: iPhone }
+    - file_contains: { path: zariadenia.txt, text: 192.168.1.11 }
+    - file_contains: { path: zariadenia.txt, text: PC }
+# The second device with a taken IP address is refused; the first one stays untouched.
+- id: dev-new-duplicate-ip
+  title: { sk: Duplicitná IP adresa sa odmietne, en: A duplicate IP address is rejected }
+  group: devices
+  weight: 2
+  steps:
+    - insert_device: { name: iPhone, ip: 192.168.1.10 }
+    - run: { args: [ new, --name, Printer, --ip, 192.168.1.10 ] }
+  expect:
+    - exit_code: nonzero
+    - any_of: &has_message
+        - stderr_matches: \S
+        - stdout_matches: \S
+    - file_contains: { path: zariadenia.txt, text: iPhone }
+    - file_contains: { path: zariadenia.txt, text: Printer }
+      not: true
+- id: dev-new-invalid-ip-${ip}
+  title: { sk: 'Neplatná IP adresa: ${ip}', en: 'Invalid IP address: ${ip}' }
+  group: devices
+  weight: 0.5
+  matrix:
+    ip: [ 999.1.1.1, abc, 1.2.3, 1.2.3.4.5 ]
+  run:
+    args: [ new, --name, iPhone, --ip, '${ip}' ]
+  expect:
+    - exit_code: nonzero
+    - any_of: *has_message
+    - file_empty: zariadenia.txt
+- id: dev-new-missing-name
+  title: { sk: Chýba --name, en: Missing --name }
+  group: devices
+  weight: 0.75
+  run:
+    args: [ new, --ip, 192.168.1.10 ]
+  expect:
+    - exit_code: nonzero
+    - any_of: &mentions_name
+        - stderr_matches: { pattern: 'name|meno|nazov', ignore_case: true, fold_diacritics: true }
+        - stdout_matches: { pattern: 'name|meno|nazov', ignore_case: true, fold_diacritics: true }
+    - file_empty: zariadenia.txt
+- id: dev-new-missing-ip
+  title: { sk: Chýba --ip, en: Missing --ip }
+  group: devices
+  weight: 0.75
+  run:
+    args: [ new, --name, iPhone ]
+  expect:
+    - exit_code: nonzero
+    - any_of: &mentions_ip
+        - stderr_matches: { pattern: '\bip\b', ignore_case: true }
+        - stdout_matches: { pattern: '\bip\b', ignore_case: true }
+    - file_empty: zariadenia.txt
+- id: dev-new-missing-both
+  title: { sk: Chýbajú oba argumenty, en: Both arguments are missing }
+  group: devices
+  weight: 0.75
+  run:
+    args: [ new ]
+  expect:
+    - exit_code: nonzero
+    - any_of: *mentions_name
+    - any_of: *mentions_ip
+    - file_empty: zariadenia.txt
+
+- id: dev-list-empty
+  title: { sk: Výpis bez zariadení, en: Listing without devices }
+  group: devices
+  weight: 0.5
+  run:
+    args: [ list ]
+  expect:
+    - exit_code: 0
+    - stdout_matches: *has_text
+- id: dev-list-one
+  title: { sk: Výpis jedného zariadenia, en: Listing one device }
+  group: devices
+  weight: 1
+  steps:
+    - insert_device: { name: PC, ip: 192.168.1.10 }
+    - run: { args: [ list ] }
+  expect:
+    - exit_code: 0
+    - stdout_contains: PC
+    - stdout_contains: 192.168.1.10
+- id: dev-list-many
+  title: { sk: Výpis viacerých zariadení oddelených od seba, en: Listing several devices set apart from each other }
+  group: devices
+  weight: 1.5
+  steps:
+    - insert_device: { name: PC, ip: 192.168.1.10 }
+    - insert_device: { name: Laptop, ip: 192.168.1.11 }
+    - insert_device: { name: Server, ip: 10.10.25.30 }
+    - run: { args: [ list ] }
+  expect:
+    - exit_code: 0
+    - stdout_contains: 192.168.1.10
+    - stdout_contains: 192.168.1.11
+    - stdout_contains: 10.10.25.30
+    - stdout_contains: PC
+    - stdout_contains: Laptop
+    - stdout_contains: Server
+    # "Visibly separated" has no exact form: at least two blank or ruler lines (---, ===, ***) in the output.
+    - stdout_matches: { pattern: '(?:^[ \t]*(?:[-=*_#~]{3,})?[ \t]*$[\s\S]*){2}', flags: m }
+
+# Both state files are created on the first run of any command.
+- id: dev-files-created
+  title: { sk: Súbory sa vytvoria pri prvom spustení, en: The state files are created on the first run }
+  group: devices
+  weight: 1
+  run:
+    args: [ count ]
+  expect:
+    - file_exists: zariadenia.txt
+    - file_exists: incidenty.txt

@@ -1,0 +1,76 @@
+@import "tailwindcss";
+@custom-variant dark (&:where(.dark, .dark *));
+@source "./index.html";
+@source "./app.js";
+
+:root {
+  --bg: #f8fafc;
+  --surface: #ffffff;
+  --hover: #eef2f7;
+  --border: #d8e0ea;
+  --fg: #172033;
+  --muted: #5f6b7d;
+  --accent: #2456d6;
+  --accent-fg: #ffffff;
+  --danger: #b42318;
+  --warning: #a15c00;
+  --success: #16803c;
+  --code: #f1f5f9;
+  --code-fg: #1f2937;
+  color-scheme: light;
+}
+
+.dark {
+  --bg: #0b1120;
+  --surface: #131c2e;
+  --hover: #1d2a42;
+  --border: #2b3a55;
+  --fg: #e7edf7;
+  --muted: #9aa8be;
+  --accent: #7aa2ff;
+  --accent-fg: #0b1120;
+  --danger: #ff8f85;
+  --warning: #f5c26b;
+  --success: #6ee7a0;
+  --code: #0a0f1a;
+  --code-fg: #d7e0ee;
+  color-scheme: dark;
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-surface: var(--surface);
+  --color-hover: var(--hover);
+  --color-border: var(--border);
+  --color-fg: var(--fg);
+  --color-muted: var(--muted);
+  --color-accent: var(--accent);
+  --color-accent-fg: var(--accent-fg);
+  --color-danger: var(--danger);
+  --color-warning: var(--warning);
+  --color-success: var(--success);
+  --color-code: var(--code);
+  --color-code-fg: var(--code-fg);
+}
+
+html {
+  font-family: ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+}
+
+[x-cloak] {
+  display: none !important;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 999px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
