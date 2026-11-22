@@ -1,8 +1,7 @@
 # SENTINEL: example assignment with user plugins
 
-A port of the hand-written tui-test project of the DSA 2026 course (semester project 1, a C++17 CLI `sentinel` with
-the commands `new`, `list`, `add`, `fix`, `count`; state files `zariadenia.txt` and `incidenty.txt`) to the
-declarative model: `assignment.yaml` plus `scenarios/*.yaml`.
+A C++17 CLI `sentinel` with the commands `new`, `list`, `add`, `fix`, `count` and the state files
+`zariadenia.txt` and `incidenty.txt`, ported to the declarative model: `assignment.yaml` plus `scenarios/*.yaml`.
 
 | Path | What it is |
 | --- | --- |

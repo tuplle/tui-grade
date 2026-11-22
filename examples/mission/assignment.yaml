@@ -1,6 +1,6 @@
-# ZAPR 2026, semester project 1: MISSION CONTROL (a C17 command-line mission simulator).
+# MISSION CONTROL: example assignment (a C17 command-line mission simulator).
 # The grading table of the assignment README: 2 + 3 + 5 + 3 + 3 + 4 = 20 points.
-name: zapr-mission
+name: mission
 max_points: 20
 locale: sk
 
@@ -12,9 +12,9 @@ build:
 binary: bin/mission
 project_root_marker: src/main.c
 
-# Submissions are named priezvisko_meno_login_zapr1(.zip); the login becomes the student id.
+# Submissions are named surname_name_login_project1(.zip); the login becomes the student id.
 student_id:
-  pattern: '^(?<surname>[^_]+)_(?<name>[^_]+)_(?<login>[^_]+)_zapr1$'
+  pattern: '^(?<surname>[^_]+)_(?<name>[^_]+)_(?<login>[^_]+)_project1$'
 
 scoring:
   use: proportional

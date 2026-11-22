@@ -1,6 +1,6 @@
 # MISSION CONTROL – reference solution
 
-Reference solution of the ZAPR 2026 assignment (semester project 1). It is the model project against which the
+Reference solution of the `examples/mission` assignment. It is the model project against which the
 scenarios in `scenarios/` are verified: it earns the full automatic score (16 of 20 points; the remaining 4 points
 for code quality are graded manually).
 

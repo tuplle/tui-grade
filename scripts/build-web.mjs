@@ -14,7 +14,7 @@ const tailwind = join(root, 'node_modules', '.bin', process.platform === 'win32'
 
 await rm(to, { recursive: true, force: true });
 await mkdir(to, { recursive: true });
-for (const file of ['index.html', 'theme.js', 'favicon.svg']) await cp(join(from, file), join(to, file));
+for (const file of ['index.html', 'theme.js', 'logo.png']) await cp(join(from, file), join(to, file));
 
 await build({
   entryPoints: [join(from, 'app.js')],

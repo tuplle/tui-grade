@@ -1,0 +1,86 @@
+/*
+ * tui-grade documentation theme: dark by default, green as the primary color.
+ * Docsify 5 themes are a set of CSS custom properties on :root (core.min.css + the "vue" addon).
+ * Overriding them here is enough; no theme script or toggle is needed.
+ */
+:root {
+  color-scheme: dark;
+
+  /* Base scale: every mono/alpha step is mixed from the background and the text color. */
+  --color-bg: #0b120f;
+  --color-text: #d5e4da;
+  --color-mono-min: var(--color-bg);
+  --color-mono-max: var(--color-text);
+
+  /* Primary: the green of the logo's terminal glow. */
+  --theme-color: #34d399;
+  --theme-color-1: color-mix(in srgb, var(--theme-color), var(--color-mono-min) 88%);
+  --theme-color-2: color-mix(in srgb, var(--theme-color), var(--color-mono-min) 72%);
+  --theme-color-3: color-mix(in srgb, var(--theme-color), var(--color-mono-min) 52%);
+  --theme-color-4: color-mix(in srgb, var(--theme-color), var(--color-mono-min) 28%);
+  --theme-color-5: color-mix(in srgb, var(--theme-color), var(--color-mono-max) 28%);
+  --theme-color-6: color-mix(in srgb, var(--theme-color), var(--color-mono-max) 52%);
+  --theme-color-7: color-mix(in srgb, var(--theme-color), var(--color-mono-max) 72%);
+  --theme-color-8: color-mix(in srgb, var(--theme-color), var(--color-mono-max) 88%);
+
+  /* Text that must stay bright on a dark background (the core mix darkens it). */
+  --strong-color: #effaf3;
+
+  /* Links, buttons and form controls. */
+  --link-color: #4ade80;
+  --link-color-hover: #86efac;
+  --link-underline-color: color-mix(in srgb, var(--theme-color), transparent 55%);
+  --button-bg: var(--theme-color);
+  --button-color: #04150c;
+  --border-color: #1d2f26;
+  --form-element-bg: #101b16;
+  --form-element-border-color: #2a4336;
+
+  /* Cover page: a green halo behind the logo on the dark background. */
+  --cover-bg:
+    radial-gradient(circle at 50% 18%, rgb(52 211 153 / 18%), transparent 55%),
+    radial-gradient(circle at 80% 80%, rgb(52 211 153 / 8%), transparent 45%), var(--color-bg);
+  --cover-bg-overlay: none;
+  --cover-color: #b9ccbf;
+
+  /* Tables, callouts, inline code and keyboard keys. */
+  --table-row-alt-bg: #101a15;
+  --callout-bg: #101a15;
+  --code-bg: #101a15;
+  --code-color: #86efac;
+  --kbd-bg: #132019;
+  --kbd-border: 1px solid #2a4336;
+  --kbd-color: #cfe9db;
+  --kbd-alt-box-shadow: 0 2px 0 1px #22382c;
+  --mark-bg: #14532d;
+  --mark-color: #dcfce7;
+
+  /* Sidebar. */
+  --sidebar-bg: #090f0c;
+  --sidebar-border-color: #1d2f26;
+  --sidebar-link-color: #c3d5c9;
+  --sidebar-link-color-active: var(--theme-color);
+  --sidebar-group-title-color: #effaf3;
+
+  /* Syntax highlighting for dark backgrounds. */
+  --codeblock-bg: #0e1813;
+  --codeblock-color: #d5e4da;
+  --codeblock-comment: #7d9b8a;
+  --codeblock-function: #7ee2a8;
+  --codeblock-important: #ff9a76;
+  --codeblock-keyword: #67d7f5;
+  --codeblock-operator: #e5c07b;
+  --codeblock-property: #a5d6ff;
+  --codeblock-punctuation: #9fb3a7;
+  --codeblock-selector: #d2a8ff;
+  --codeblock-tag: #7ee787;
+  --codeblock-variable: #ffa657;
+}
+
+/* The logo is 229 x 215; keep the cover mark compact and give it the same glow as the artwork. */
+.cover-main img {
+  width: 140px;
+  max-width: 40vw;
+  height: auto;
+  filter: drop-shadow(0 0 34px rgb(52 211 153 / 30%));
+}

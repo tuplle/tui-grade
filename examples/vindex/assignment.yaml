@@ -1,4 +1,4 @@
-# DSA 2026, semester project 2: VINDEX (a C++17 word index on a trie).
+# VINDEX: example assignment with a user plugin (a C++17 word index on a trie).
 # Port of the hand-written tui-test project of the course: the setup helper `indexFile` became the user plugin
 # in plugins/ (step `index_file`), the book texts were replaced by small purpose-made files in fixtures/.
 # The grading table: 2 + 5 + 4 + 3 + 2 + 4 = 20 points (4 points of code quality are graded manually).

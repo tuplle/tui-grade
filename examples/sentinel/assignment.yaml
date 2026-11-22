@@ -1,4 +1,4 @@
-# DSA 2026, semester project 1: SENTINEL (a C++17 command-line tool for network incidents).
+# SENTINEL: example assignment with user plugins (a C++17 command-line tool for network incidents).
 # Port of the hand-written tui-test project of the course: the setup helpers `insertDevice`/`insertIncident`
 # became the user plugins in plugins/ (steps `insert_device` and `insert_incident`).
 # The grading table: 2 + 5 + 5 + 4 + 4 = 20 points (4 points of code quality are graded manually).

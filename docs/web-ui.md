@@ -15,13 +15,17 @@ or `%LOCALAPPDATA%\tui-grade` on Windows).
 
 The CLI is unchanged and remains the canonical grading path. Every command in the README still works.
 
+![A finished run: the class results table and recent runs](_media/dashboard-results.png)
+
+![A student detail view with the group breakdown, manual points and scenarios](_media/dashboard-student.png)
+
 ## What the dashboard does
 
 - Pick an assignment folder and a submissions folder or `.zip`.
 - Validate an assignment before any build or student program starts.
 - Run a batch and watch student/scenario progress live.
-- Stop the active run. The dashboard sends `SIGTERM` to the child `tui-grade run` process, so the normal cleanup and
-  process-tree kill path is used.
+- Stop the active run. The dashboard sends an IPC stop message to the child `tui-grade run` process (with `SIGTERM` as
+  the fallback), so the normal cleanup and process-tree kill path is used on every platform.
 - Inspect the class table and each student's groups, scenarios, checks, build log, run logs, screens and warnings.
 - Download `summary.csv` and each student's ZIP.
 - Enter manual points for manual groups and re-score without rebuilding or rerunning student code.

@@ -54,9 +54,9 @@ Sessions run programs in a pseudo-terminal through `@microsoft/tui-test`, which 
 arm64/x64 and Windows x64. It is not available for Windows ARM64. The standalone release bundle is built for the
 platform it was made on, so use the matching artifact.
 
-## `tui-grade check` reports a `zapr-mission` path error
+## `tui-grade check` reports a `mission` path error
 
-The example directory is `examples/mission`; its assignment name is `zapr-mission`. Use:
+The example directory is `examples/mission`; its assignment name is `mission`. Use:
 
 ```bash
 tui-grade check examples/mission

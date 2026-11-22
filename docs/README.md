@@ -38,8 +38,8 @@ The same engine is available through:
 pnpm install
 pnpm build
 node dist/cli/main.js check examples/mission
-node dist/cli/main.js run examples/mission examples/mission/solution --out /tmp/zapr-results
-cat /tmp/zapr-results/summary.csv
+node dist/cli/main.js run examples/mission examples/mission/solution --out /tmp/mission-results
+cat /tmp/mission-results/summary.csv
 ```
 
 `node src/cli/main.ts` also runs the CLI directly through Node 26 type stripping. The web dashboard needs the built
