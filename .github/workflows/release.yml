@@ -59,6 +59,7 @@ jobs:
         with:
           node-version: 26
           cache: pnpm
+          registry-url: 'https://registry.npmjs.org'
 
       # The release must be cut from a tag that names the version in package.json (v1.2.0 for "version": "1.2.0").
       - name: Check that the tag matches the package version
@@ -86,12 +87,23 @@ jobs:
           npx --yes --package "$TARBALL" tui-grade --version
           npx --yes --package "$TARBALL" tui-grade --help >/dev/null
 
-      # NPM_TOKEN must be an npm automation token with publish rights for the package.
-      # For npm trusted publishing, configure the repository as a trusted publisher instead and drop NODE_AUTH_TOKEN.
+      - name: Check whether this version is already on npm
+        id: npm-version
+        run: |
+          VERSION="$(node -p "require('./package.json').version")"
+          if npm view "tui-grade@$VERSION" version >/dev/null 2>&1; then
+            echo "published=true" >> "$GITHUB_OUTPUT"
+            echo "tui-grade@$VERSION is already on npm; the publish step will be skipped."
+          else
+            echo "published=false" >> "$GITHUB_OUTPUT"
+          fi
+
+      # Trusted publishing: npmjs.com must list tuplle/tui-grade + release.yml as a trusted publisher with
+      # `npm publish` allowed. The OIDC token comes from `id-token: write`; no long-lived token secret is involved.
+      # Provenance is automatic under trusted publishing; the explicit flag keeps local dry runs equivalent.
       - name: Publish to npm
+        if: steps.npm-version.outputs.published != 'true'
         run: pnpm publish --access public --provenance --no-git-checks
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - uses: actions/download-artifact@v8
         with:

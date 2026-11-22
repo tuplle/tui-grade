@@ -36,7 +36,7 @@ const group = (r: SubmissionResult, id: string) => {
   return found;
 };
 
-describe('zapr-mission example assignment', () => {
+describe('mission example assignment', () => {
   it('passes `check` without any issue', async () => {
     const report = await createGrader({ assignmentDir: example }).inspect();
     expect(report.issues).toEqual([]);
@@ -54,7 +54,7 @@ describe('zapr-mission example assignment', () => {
 
     beforeAll(async () => {
       if (!hasGcc) return;
-      root = await mkdtemp(join(tmpdir(), 'tui-grade-zapr-'));
+      root = await mkdtemp(join(tmpdir(), 'tui-grade-mission-'));
       const input = join(root, 'input');
       out = join(root, 'out');
       await mkdir(input);
@@ -65,11 +65,11 @@ describe('zapr-mission example assignment', () => {
       }
       // The whole project one folder deeper, as students zip it from the parent directory.
       await writeFile(
-        join(input, 'Novak_Jan_xnovak_zapr1.zip'),
+        join(input, 'Novak_Jan_xnovak_project1.zip'),
         await makeZip(await zipEntries(solutionDir, 'proj/')),
       );
       await writeFile(
-        join(input, 'Kral_Peter_pkral_zapr1.zip'),
+        join(input, 'Kral_Peter_pkral_project1.zip'),
         await makeZip(await zipEntries(fixture('no-marker'), '')),
       );
 
@@ -197,7 +197,7 @@ describe('zapr-mission example assignment', () => {
 
     runIf('report.md is in Slovak', async () => {
       const report = await readFile(join(out, 'solution', 'report.md'), 'utf8');
-      expect(report.startsWith('# Správa o hodnotení: zapr-mission')).toBe(true);
+      expect(report.startsWith('# Správa o hodnotení: mission')).toBe(true);
       expect(report).toContain('**Študent:** solution');
       expect(report).toContain('| Skupina | Body |');
       expect(report).toContain('Spracovanie argumentov, --help a validácia');

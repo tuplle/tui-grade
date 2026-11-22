@@ -54,9 +54,9 @@ Sessions run programs in a pseudo-terminal through `@microsoft/tui-test`, which 
 arm64/x64 and Windows x64. It is not available for Windows ARM64. The standalone release bundle is built for the
 platform it was made on, so use the matching artifact.
 
-## `tui-grade check` reports a `zapr-mission` path error
+## `tui-grade check` reports a `mission` path error
 
-The example directory is `examples/mission`; its assignment name is `zapr-mission`. Use:
+The example directory is `examples/mission`; its assignment name is `mission`. Use:
 
 ```bash
 tui-grade check examples/mission
@@ -130,8 +130,10 @@ this repository.
 
 ## Publishing fails with an authentication error
 
-Set `NPM_TOKEN` for the release workflow or configure npm trusted publishing. The workflow grants `id-token: write` for
-provenance. See [Publishing](publishing.md).
+Releases use npm trusted publishing. Check that npmjs.com lists `tuplle/tui-grade` and `.github/workflows/release.yml`
+as a trusted publisher with **Allow npm publish**, and that the package already exists on npm. The workflow grants
+`id-token: write`; there is no `NPM_TOKEN` secret. An `ENEEDAUTH` error usually means the repository, workflow
+filename or allowed action does not match the npm configuration. See [Publishing](publishing.md).
 
 ## Still stuck?
 

@@ -44,7 +44,7 @@ tui-grade schema examples/mission
 ## 3. Grade the reference solution
 
 ```bash
-tui-grade run examples/mission examples/mission/solution --out /tmp/zapr-results
+tui-grade run examples/mission examples/mission/solution --out /tmp/mission-results
 ```
 
 The solution earns **16 of 20** points. The remaining 4 points belong to the manually graded `quality` group.
@@ -52,9 +52,9 @@ The solution earns **16 of 20** points. The remaining 4 points belong to the man
 Inspect the results:
 
 ```bash
-cat /tmp/zapr-results/summary.csv
-cat /tmp/zapr-results/solution/report.md
-cat /tmp/zapr-results/solution/results.json
+cat /tmp/mission-results/summary.csv
+cat /tmp/mission-results/solution/report.md
+cat /tmp/mission-results/solution/results.json
 ```
 
 The output also contains `run.json`, logs, final screens, teacher-only `results.full.json` and the student ZIP. See
@@ -72,13 +72,13 @@ solution:
 Re-run with the manual file:
 
 ```bash
-tui-grade run examples/mission examples/mission/solution --out /tmp/zapr-results --manual manual.yaml
+tui-grade run examples/mission examples/mission/solution --out /tmp/mission-results --manual manual.yaml
 ```
 
 Or re-score the existing run without rebuilding or rerunning student code:
 
 ```bash
-tui-grade rescore examples/mission /tmp/zapr-results --manual manual.yaml
+tui-grade rescore examples/mission /tmp/mission-results --manual manual.yaml
 ```
 
 ## 5. Grade a class

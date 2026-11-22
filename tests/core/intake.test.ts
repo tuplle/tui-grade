@@ -91,17 +91,17 @@ describe('findProjectRoot', () => {
 });
 
 describe('parseStudentId', () => {
-  const cfg = { pattern: '^(?<surname>[^_]+)_(?<name>[^_]+)_(?<login>[^_]+)_zapr1', strip_prefix: undefined };
+  const cfg = { pattern: '^(?<surname>[^_]+)_(?<name>[^_]+)_(?<login>[^_]+)_project1', strip_prefix: undefined };
 
   it('extracts named groups and uses login as id', () => {
-    const r = parseStudentId('Novak_Jan_xnovak_zapr1.zip', cfg);
+    const r = parseStudentId('Novak_Jan_xnovak_project1.zip', cfg);
     expect(r.parts).toEqual({ surname: 'Novak', name: 'Jan', login: 'xnovak' });
     expect(r.id).toBe('xnovak');
     expect(r.displayName).toBe('Novak Jan');
   });
 
   it('keeps diacritics in the display name and transliterates the id', () => {
-    const decomposed = 'Čech_Ján_xcech_zapr1.zip'; // NFD input
+    const decomposed = 'Čech_Ján_xcech_project1.zip'; // NFD input
     const r = parseStudentId(decomposed, cfg);
     expect(r.displayName).toBe('Čech Ján');
     expect(r.parts.surname).toBe('Čech');
@@ -121,10 +121,10 @@ describe('parseStudentId', () => {
   });
 
   it('strips the configured prefix before matching and for the fallback id', () => {
-    const withPrefix = { strip_prefix: 'pevs-2026-' };
-    expect(parseStudentId('pevs-2026-alice', withPrefix)).toMatchObject({ id: 'alice', displayName: 'alice' });
-    const both = { pattern: '^(?<login>[a-z]+)$', strip_prefix: 'pevs-2026-' };
-    expect(parseStudentId('pevs-2026-bob', both).parts.login).toBe('bob');
+    const withPrefix = { strip_prefix: 'demo-2026-' };
+    expect(parseStudentId('demo-2026-alice', withPrefix)).toMatchObject({ id: 'alice', displayName: 'alice' });
+    const both = { pattern: '^(?<login>[a-z]+)$', strip_prefix: 'demo-2026-' };
+    expect(parseStudentId('demo-2026-bob', both).parts.login).toBe('bob');
   });
 
   it('never yields an id with unsafe characters or a leading dot', () => {
@@ -139,7 +139,7 @@ describe('parseStudentId', () => {
   });
 
   it('reports whether a configured pattern matched (always true without one)', () => {
-    expect(parseStudentId('Novak_Jan_xnovak_zapr1.zip', cfg).matched).toBe(true);
+    expect(parseStudentId('Novak_Jan_xnovak_project1.zip', cfg).matched).toBe(true);
     expect(parseStudentId('Ján Čech (final).zip', cfg).matched).toBe(false);
     expect(parseStudentId('anything', undefined).matched).toBe(true);
     expect(parseStudentId('anything', { pattern: '' }).matched).toBe(true);
@@ -179,7 +179,7 @@ describe('parseStudentId', () => {
 describe('discoverSubmissions', () => {
   it('uses a ZIP with an extra root folder: root is that folder', async () => {
     await withTempDir(async (dir) => {
-      const zip = join(dir, 'Novak_Jan_xnovak_zapr1.zip');
+      const zip = join(dir, 'Novak_Jan_xnovak_project1.zip');
       await writeFile(zip, await makeZip([{ name: 'project/src/main.c', content: 'int main(){}' }]));
       await withSubmissions(zip, makeConfig({ student_id: { pattern: '^(?<surname>[^_]+)_(?<name>[^_]+)_(?<login>[^_]+)' } }), async (subs) => {
         expect(subs).toHaveLength(1);
@@ -247,8 +247,8 @@ describe('discoverSubmissions', () => {
       const input = join(dir, 'in');
       await mkdir(input);
       const bytes = await makeZip([{ name: 'src/main.c', content: '' }]);
-      await writeFile(join(input, 'Novak_Jan_xnovak_zapr1.zip'), bytes);
-      await writeFile(join(input, 'Novak_Jan_xnovak_zapr1 (1).zip'), bytes);
+      await writeFile(join(input, 'Novak_Jan_xnovak_project1.zip'), bytes);
+      await writeFile(join(input, 'Novak_Jan_xnovak_project1 (1).zip'), bytes);
       const cfg = makeConfig({ student_id: { pattern: '^(?<surname>[^_]+)_(?<name>[^_]+)_(?<login>[^_ ]+)' } });
       await withSubmissions(input, cfg, async (subs) => {
         expect(subs.map((s) => s.id)).toEqual(['xnovak', 'xnovak-2']);

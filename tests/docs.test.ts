@@ -35,6 +35,16 @@ describe('Docsify documentation', () => {
     expect(await readdir(docs)).not.toContain('superpowers');
   });
 
+  it('loads a dark, green theme with the project logo and no inline scripts', async () => {
+    const html = await read('index.html');
+    expect(html).toContain('href="_media/theme.css"');
+    expect(html).toContain('href="_media/logo.png"');
+    const theme = await read(join('_media', 'theme.css'));
+    expect(theme).toContain('color-scheme: dark');
+    expect(theme).toContain('--theme-color: #34d399');
+    expect(theme).toContain('--color-bg:');
+  });
+
   it('publishes the docs through GitHub Pages', async () => {
     const workflow = await readFile(join(repo, '.github', 'workflows', 'pages.yml'), 'utf8');
     expect(workflow).toContain('cp -R docs/. _site/');

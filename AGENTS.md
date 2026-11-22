@@ -79,7 +79,7 @@ CI order is `install --frozen-lockfile` → `typecheck` → `test` → `build`. 
   `cmake`/`custom` builder.
 - `tests/packaging.test.ts` runs `pnpm build`, `pnpm pack` and a network install. It skips offline only outside CI and
   is slow; prefer targeted suites while iterating.
-- The model example is `examples/mission`; its assignment `name` is still `zapr-mission`.
+- The model example is `examples/mission`; its assignment `name` is `mission`.
 - Scenario vocabulary: `node src/cli/main.ts describe --json` and `schema` are generated from registered definitions.
   Use them as the source of truth instead of prose docs.
 - Dashboard build: `pnpm build:web` bundles `src/web/public/app.js` (including Alpine) with esbuild and compiles
@@ -99,7 +99,9 @@ CI order is `install --frozen-lockfile` → `typecheck` → `test` → `build`. 
 - `dist/`, `bundle/`, `tui-grade-*.tar.gz` and `grading-results/` are generated/ignored; never edit them by hand.
   `bundle/` is platform-specific because `@microsoft/tui-test` has a native package.
 - Publishing uses `pnpm publish` (npm commands hit `devEngines`). The npm tarball comes from `pnpm pack`; the
-  standalone tarball comes from `scripts/make-bundle.mjs`. See `docs/publishing.md`.
+  standalone tarball comes from `scripts/make-bundle.mjs`. Releases publish from the tag workflow with npm trusted
+  publishing (OIDC, no `NPM_TOKEN`); the first version must be published by hand because npm requires an existing
+  package before a trusted publisher can be configured. See `docs/publishing.md`.
 
 ## Docs
 
@@ -107,6 +109,7 @@ CI order is `install --frozen-lockfile` → `typecheck` → `test` → `build`. 
   process; `docs/authoring-scenarios.md`, `docs/writing-plugins.md`, `docs/web-ui.md`, `docs/publishing.md`,
   `docs/security-and-limits.md` for deep behavior. Keep them in sync when behavior changes.
 - The public docs site is Docsify v5 in `docs/` (`index.html`, `_sidebar.md`, `_coverpage.md`, `.nojekyll`).
+  `docs/_media/theme.css` overrides the theme variables: dark by default with the logo's green as `--theme-color`.
   `.github/workflows/pages.yml` deploys `docs/` to GitHub Pages.
 - Internal Superpowers design/plan notes always live in `.superpowers/`, which is gitignored and never published.
 - `graphify-out/` is a generated graph; do not edit or stage it.

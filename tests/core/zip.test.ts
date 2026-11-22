@@ -157,7 +157,7 @@ describe('extractZipSafe', () => {
 
   it('works with diacritics in the archive file name', async () => {
     await withTempDir(async (dir) => {
-      const zip = await writeZip(dir, 'Čech_Ján_xcech_zapr1.zip', await makeZip([{ name: 'a.txt', content: 'a' }]));
+      const zip = await writeZip(dir, 'Čech_Ján_xcech_project1.zip', await makeZip([{ name: 'a.txt', content: 'a' }]));
       const res = await extractZipSafe(zip, join(dir, 'dest'), LIMITS);
       expect(res.files).toBe(1);
     });

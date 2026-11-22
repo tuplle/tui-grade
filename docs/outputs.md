@@ -24,7 +24,7 @@ Teacher-side metadata used by history and rescore:
 ```json
 {
   "schemaVersion": 1,
-  "assignment": "zapr-mission",
+  "assignment": "mission",
   "assignmentDir": "/home/teacher/assignments/mission",
   "inputPath": "/home/teacher/submissions",
   "outDir": "/home/teacher/.local/share/tui-grade/2026-11-21T17-43-23.732Z",

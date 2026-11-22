@@ -50,7 +50,7 @@ async function score(input: ScoreInput, opts: unknown = {}): Promise<ScoreResult
   return def.score(input, def.params.parse(opts));
 }
 
-const zaprGroups: Group[] = [
+const missionGroups: Group[] = [
   { id: 'structure', title: 'Structure', points: 2 },
   { id: 'build', title: 'Build', points: 3, requires_build: true },
   { id: 'basic', title: 'Basic', points: 5, requires_build: true },
@@ -58,7 +58,7 @@ const zaprGroups: Group[] = [
   { id: 'menu', title: 'Menu', points: 3, requires_build: true },
   { id: 'review', title: 'Review', points: 4, manual: true },
 ];
-const zaprScenarios = (): ScenarioResult[] => [
+const missionScenarios = (): ScenarioResult[] => [
   scenario('s-structure', 'structure', [true, true]),
   scenario('s-build', 'build', [true]),
   scenario('s-basic', 'basic', [true, true]),
@@ -85,8 +85,8 @@ describe('scoring-proportional registration', () => {
 });
 
 describe('scoring-proportional with groups', () => {
-  it('(a) ZAPR-like groups, all passing: 16 automatic, manual group pending', async () => {
-    const r = await score({ assignment: assignment({ groups: zaprGroups }), buildOk: true, scenarios: zaprScenarios() });
+  it('(a) mission-like groups, all passing: 16 automatic, manual group pending', async () => {
+    const r = await score({ assignment: assignment({ groups: missionGroups }), buildOk: true, scenarios: missionScenarios() });
     expect(r.points).toBe(16);
     expect(r.automaticPoints).toBe(16);
     expect(r.max).toBe(20);
@@ -98,16 +98,16 @@ describe('scoring-proportional with groups', () => {
   });
 
   it('(b) half of the checks of a 5-point group pass → 2.5', async () => {
-    const scenarios = zaprScenarios();
+    const scenarios = missionScenarios();
     scenarios[2] = scenario('s-basic', 'basic', [true, false]);
-    const r = await score({ assignment: assignment({ groups: zaprGroups }), buildOk: true, scenarios });
+    const r = await score({ assignment: assignment({ groups: missionGroups }), buildOk: true, scenarios });
     expect(r.groups.find((g) => g.id === 'basic')!.points).toBe(2.5);
     expect(r.groups.find((g) => g.id === 'basic')!.scenarios).toEqual([{ id: 's-basic', points: 2.5, max: 5 }]);
     expect(r.points).toBe(13.5);
   });
 
   it('(c) requires_build groups score 0 on a failed build, other groups keep their points', async () => {
-    const r = await score({ assignment: assignment({ groups: zaprGroups }), buildOk: false, scenarios: zaprScenarios() });
+    const r = await score({ assignment: assignment({ groups: missionGroups }), buildOk: false, scenarios: missionScenarios() });
     expect(r.groups.find((g) => g.id === 'structure')!.points).toBe(2);
     for (const id of ['build', 'basic', 'errors', 'menu']) expect(r.groups.find((g) => g.id === id)!.points).toBe(0);
     expect(r.groups.find((g) => g.id === 'basic')!.scenarios).toEqual([{ id: 's-basic', points: 0, max: 5 }]);
@@ -116,7 +116,7 @@ describe('scoring-proportional with groups', () => {
   });
 
   it('(d) manual points: supplied value clears pending and counts toward the total, clamped to the group max', async () => {
-    const input = { assignment: assignment({ groups: zaprGroups }), buildOk: true, scenarios: zaprScenarios() };
+    const input = { assignment: assignment({ groups: missionGroups }), buildOk: true, scenarios: missionScenarios() };
     const supplied = await score({ ...input, manual: { review: 3 } });
     expect(supplied.groups.find((g) => g.id === 'review')).toMatchObject({ points: 3, pending: false, manual: true });
     expect(supplied.points).toBe(19);
@@ -132,9 +132,9 @@ describe('scoring-proportional with groups', () => {
 
   it('ignores manual values for groups that are not manual', async () => {
     const r = await score({
-      assignment: assignment({ groups: zaprGroups }),
+      assignment: assignment({ groups: missionGroups }),
       buildOk: true,
-      scenarios: zaprScenarios(),
+      scenarios: missionScenarios(),
       manual: { basic: 0 },
     });
     expect(r.groups.find((g) => g.id === 'basic')!.points).toBe(5);
@@ -189,7 +189,7 @@ describe('scoring-proportional with groups', () => {
   });
 
   it('a group without scenarios scores 0 without NaN', async () => {
-    const r = await score({ assignment: assignment({ groups: zaprGroups }), buildOk: true, scenarios: [] });
+    const r = await score({ assignment: assignment({ groups: missionGroups }), buildOk: true, scenarios: [] });
     expect(r.points).toBe(0);
     expect(r.groups.every((g) => g.points === 0)).toBe(true);
   });
@@ -207,9 +207,9 @@ describe('scoring-proportional with groups', () => {
 
   it('lists scenarios without a group or with an unknown group id as ungrouped, scoring 0', async () => {
     const r = await score({
-      assignment: assignment({ groups: zaprGroups }),
+      assignment: assignment({ groups: missionGroups }),
       buildOk: true,
-      scenarios: [...zaprScenarios(), scenario('loose', undefined, [true]), scenario('typo', 'no-such-group', [true])],
+      scenarios: [...missionScenarios(), scenario('loose', undefined, [true]), scenario('typo', 'no-such-group', [true])],
     });
     expect(r.ungrouped).toEqual([
       { id: 'loose', points: 0, max: 0 },

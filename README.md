@@ -1,4 +1,18 @@
-# tui-grade
+<p align="center">
+  <img src="docs/_media/logo.png" alt="tui-grade logo" width="132" />
+</p>
+
+<h1 align="center">tui-grade</h1>
+
+<p align="center">
+  <a href="https://www.npmjs.com/package/tui-grade"><img alt="npm version" src="https://img.shields.io/npm/v/tui-grade?style=flat-square&logo=npm&logoColor=white" /></a>
+  <a href="https://www.npmjs.com/package/tui-grade"><img alt="npm downloads" src="https://img.shields.io/npm/dm/tui-grade?style=flat-square&logo=npm&logoColor=white" /></a>
+  <a href="https://github.com/tuplle/tui-grade/actions/workflows/ci.yml"><img alt="CI status" src="https://github.com/tuplle/tui-grade/actions/workflows/ci.yml/badge.svg" /></a>
+  <a href="https://tuplle.github.io/tui-grade/"><img alt="Documentation" src="https://img.shields.io/badge/docs-tui--grade-34d399?style=flat-square" /></a>
+  <a href="LICENSE.txt"><img alt="Apache-2.0 license" src="https://img.shields.io/badge/license-Apache--2.0-34d399?style=flat-square" /></a>
+  <a href="package.json"><img alt="Node.js 26 or newer" src="https://img.shields.io/badge/node-%E2%89%A526-339933?style=flat-square&logo=node.js&logoColor=white" /></a>
+  <img alt="Linux, macOS and Windows x64" src="https://img.shields.io/badge/platforms-Linux%20%7C%20macOS%20%7C%20Windows%20x64-4b5563?style=flat-square" />
+</p>
 
 A plugin-based framework and command-line tool, `tui-grade`, that **grades student programs written for the terminal**
 (command-line tools, text menus, interactive TUIs) by running them against declarative YAML scenarios.
@@ -78,7 +92,7 @@ The bundle is produced by `pnpm build && node scripts/make-bundle.mjs` (into `bu
 
 ## Quickstart (5 minutes)
 
-The repository ships three complete assignments in `examples/`. `zapr-mission` is the model one: a C17 mission
+The repository ships three complete assignments in `examples/`. The mission assignment is the model one: a C17 mission
 simulator with 60 scenarios, six point groups and a reference solution.
 
 ```bash
@@ -89,11 +103,11 @@ alias tui-grade='node dist/cli/main.js'            # or use the bundle / `pnpm e
 tui-grade check examples/mission              # valid: 60 scenarios
 
 # 2. Grade the reference solution (a folder that contains src/main.c).
-tui-grade run examples/mission examples/mission/solution --out /tmp/zapr-results
+tui-grade run examples/mission examples/mission/solution --out /tmp/mission-results
 
 # 3. Look at the results.
-cat /tmp/zapr-results/summary.csv
-cat /tmp/zapr-results/solution/report.md
+cat /tmp/mission-results/summary.csv
+cat /tmp/mission-results/solution/report.md
 ```
 
 The solution earns 16 of 20 points; the remaining 4 are the manually graded `quality` group. Give them with a file:
@@ -105,7 +119,7 @@ solution:
 ```
 
 ```bash
-tui-grade run examples/mission examples/mission/solution --out /tmp/zapr-results --manual manual.yaml
+tui-grade run examples/mission examples/mission/solution --out /tmp/mission-results --manual manual.yaml
 ```
 
 Point `run` at a folder with many submissions (one sub-folder or `.zip` per student) to grade a whole class.
@@ -133,6 +147,8 @@ npx tui-grade
 It starts a server on `127.0.0.1:3333`, prints the URL and opens the default browser. The dashboard can pick an assignment
 and a submissions folder or ZIP, validate, run, show live progress, stop a run, inspect student results, enter manual
 points and browse earlier runs. It is localhost-only and teacher-only; there is no login and no shared deployment.
+
+![The tui-grade dashboard showing a finished run, the student results table and recent runs](docs/_media/dashboard-results.png)
 
 ```bash
 tui-grade serve                      # default: http://127.0.0.1:3333/

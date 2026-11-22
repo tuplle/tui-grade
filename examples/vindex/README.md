@@ -1,7 +1,7 @@
 # VINDEX: example assignment with a user plugin
 
-A port of the hand-written tui-test project of the DSA 2026 course (semester project 2, a C++17 CLI `vindex` with the
-commands `index FILE`, `search WORD`, `stats`, `clear`, `help`; state file `vindex_index.txt`) to the declarative model.
+A C++17 CLI `vindex` with the commands `index FILE`, `search WORD`, `stats`, `clear`, `help` and the state file
+`vindex_index.txt`, ported to the declarative model.
 
 | Path | What it is |
 | --- | --- |

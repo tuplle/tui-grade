@@ -4,9 +4,9 @@ The repository ships three complete assignments in `examples/`. They are both do
 
 ## `examples/mission`
 
-The model assignment: a C17 mission simulator with 60 scenarios, six point groups and a reference solution.
+The model assignment (`mission`): a C17 mission simulator with 60 scenarios, six point groups and a reference solution.
 
-- assignment name: `zapr-mission`
+- assignment name: `mission`
 - language: C17
 - build: `gcc`
 - reports: Slovak by default
