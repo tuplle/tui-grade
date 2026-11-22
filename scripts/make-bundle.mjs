@@ -51,7 +51,13 @@ async function step(name, fn) {
   }
 }
 
-const exec = (command, args, cwd = root) => run(command, args, { cwd, maxBuffer: 64 * 1024 * 1024 });
+const MAX_BUFFER = 64 * 1024 * 1024;
+
+const exec = (command, args, cwd = root) => run(command, args, { cwd, maxBuffer: MAX_BUFFER });
+
+// `pnpm` is pnpm.cmd on Windows, which execFile cannot start without a shell.
+const pnpm = (args, cwd = root) =>
+  run('pnpm', args, { cwd, maxBuffer: MAX_BUFFER, shell: process.platform === 'win32' });
 
 async function exists(path) {
   return stat(path).then(
@@ -61,7 +67,7 @@ async function exists(path) {
 }
 
 async function deployWithPnpm(name) {
-  await exec('pnpm', ['--filter', name, 'deploy', '--prod', bundle]);
+  await pnpm(['--filter', name, 'deploy', '--prod', bundle]);
 }
 
 async function installWithPnpm() {
@@ -70,7 +76,7 @@ async function installWithPnpm() {
   for (const file of ['package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml', 'LICENSE.txt', 'README.md']) {
     if (await exists(join(root, file))) await cp(join(root, file), join(bundle, file));
   }
-  await exec('pnpm', ['install', '--prod', '--frozen-lockfile'], bundle);
+  await pnpm(['install', '--prod', '--frozen-lockfile'], bundle);
 }
 
 const launcherName = process.platform === 'win32' ? 'tui-grade.cmd' : 'tui-grade';
