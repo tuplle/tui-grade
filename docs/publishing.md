@@ -64,10 +64,15 @@ pnpm publish --dry-run --no-git-checks
 tarball:
 
 ```bash
-TARBALL=$(ls tui-grade-*.tgz | head -1)
-npx --yes --package "$PWD/$TARBALL" tui-grade --version
-npx --yes --package "$PWD/$TARBALL" tui-grade --help
+TARBALL="$PWD/$(ls tui-grade-*.tgz | head -1)"
+WORK="$(mktemp -d)"
+cd "$WORK"
+npx --yes --package "$TARBALL" tui-grade --version
+npx --yes --package "$TARBALL" tui-grade --help
 ```
+
+Run this from outside the repository. `package.json` declares pnpm in `devEngines`, and npm/npx refuses to run in a
+project that requires another package manager.
 
 ## Release workflow
 

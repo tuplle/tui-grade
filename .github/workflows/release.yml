@@ -83,7 +83,12 @@ jobs:
 
       - name: Smoke test the packed tarball with npx
         run: |
-          TARBALL="$PWD/$(ls tui-grade-*.tgz | head -1)"
+          TARBALL="$(ls "$PWD"/tui-grade-*.tgz | head -1)"
+          WORK="$(mktemp -d)"
+          trap 'rm -rf "$WORK"' EXIT
+          # Run outside the repository: package.json declares pnpm in devEngines, and npm/npx enforces that for
+          # the current project before it runs the packed CLI.
+          cd "$WORK"
           npx --yes --package "$TARBALL" tui-grade --version
           npx --yes --package "$TARBALL" tui-grade --help >/dev/null
 
@@ -91,7 +96,9 @@ jobs:
         id: npm-version
         run: |
           VERSION="$(node -p "require('./package.json').version")"
-          if npm view "tui-grade@$VERSION" version >/dev/null 2>&1; then
+          # Use pnpm for the registry check too: npm refuses to run here because package.json declares pnpm
+          # in devEngines.
+          if pnpm view "tui-grade@$VERSION" version >/dev/null 2>&1; then
             echo "published=true" >> "$GITHUB_OUTPUT"
             echo "tui-grade@$VERSION is already on npm; the publish step will be skipped."
           else

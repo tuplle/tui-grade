@@ -123,6 +123,8 @@ describe('GitHub workflows', () => {
     expect(wf.permissions?.['id-token']).toBe('write'); // OIDC for npm trusted publishing
     const releaseText = await readFile(at('.github/workflows/release.yml'), 'utf8');
     expect(releaseText).not.toMatch(/NPM_TOKEN|NODE_AUTH_TOKEN/);
+    // npm refuses to run in this repository (devEngines requires pnpm), so the workflow must use pnpm.
+    expect(releaseText).not.toMatch(/^\s*npm\s/m);
     const setupNode = wf.jobs['release']?.steps.find((s) => s.uses?.startsWith('actions/setup-node@'));
     expect(setupNode?.with?.['registry-url']).toBe('https://registry.npmjs.org');
     const cmds = commands(wf);
