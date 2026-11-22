@@ -55,9 +55,17 @@ const MAX_BUFFER = 64 * 1024 * 1024;
 
 const exec = (command, args, cwd = root) => run(command, args, { cwd, maxBuffer: MAX_BUFFER });
 
-// `pnpm` is pnpm.cmd on Windows, which execFile cannot start without a shell.
+/** Runs a Windows command through cmd.exe; `execFile` alone cannot start `.cmd` shims. */
+const execCmd = (command, args, cwd = root) =>
+  run(process.env['ComSpec'] ?? 'cmd.exe', ['/d', '/s', '/c', command, ...args], {
+    cwd,
+    maxBuffer: MAX_BUFFER,
+  });
+
 const pnpm = (args, cwd = root) =>
-  run('pnpm', args, { cwd, maxBuffer: MAX_BUFFER, shell: process.platform === 'win32' });
+  process.platform === 'win32'
+    ? execCmd('pnpm', args, cwd)
+    : run('pnpm', args, { cwd, maxBuffer: MAX_BUFFER });
 
 async function exists(path) {
   return stat(path).then(
@@ -67,7 +75,8 @@ async function exists(path) {
 }
 
 async function deployWithPnpm(name) {
-  await pnpm(['--filter', name, 'deploy', '--prod', bundle]);
+  // A hoisted node_modules has no symlinks/junctions, so the archive also extracts on Windows.
+  await pnpm(['--filter', name, 'deploy', '--prod', '--config.node-linker=hoisted', bundle]);
 }
 
 async function installWithPnpm() {
@@ -76,14 +85,14 @@ async function installWithPnpm() {
   for (const file of ['package.json', 'pnpm-lock.yaml', 'pnpm-workspace.yaml', 'LICENSE.txt', 'README.md']) {
     if (await exists(join(root, file))) await cp(join(root, file), join(bundle, file));
   }
-  await pnpm(['install', '--prod', '--frozen-lockfile'], bundle);
+  await pnpm(['install', '--prod', '--frozen-lockfile', '--config.node-linker=hoisted'], bundle);
 }
 
 const launcherName = process.platform === 'win32' ? 'tui-grade.cmd' : 'tui-grade';
 
 async function runLauncher(file, args, cwd) {
   if (process.platform === 'win32') {
-    const { stdout } = await exec(process.env['ComSpec'] ?? 'cmd.exe', ['/d', '/s', '/c', file, ...args], cwd);
+    const { stdout } = await execCmd(file, args, cwd);
     return { stdout };
   }
   return exec(file, args, cwd);
@@ -115,9 +124,17 @@ async function main() {
   if (method === 'install') await step('copy dist and run pnpm install --prod --frozen-lockfile', installWithPnpm);
 
   await step('check the native tui-test platform package', async () => {
+    const microsoft = join(bundle, 'node_modules', '@microsoft');
+    const direct = await readdir(microsoft).catch(() => []);
     const store = join(bundle, 'node_modules', '.pnpm');
-    const native = (await readdir(store)).filter((entry) => entry.startsWith('@microsoft+tui-test-'));
-    if (native.length === 0) throw new Error(`no @microsoft/tui-test-<platform> package in ${store}; sessions would not work`);
+    const virtual = await readdir(store).catch(() => []);
+    const native = [
+      ...direct.filter((entry) => entry.startsWith('tui-test-')),
+      ...virtual.filter((entry) => entry.startsWith('@microsoft+tui-test-')),
+    ];
+    if (native.length === 0) {
+      throw new Error(`no @microsoft/tui-test-<platform> package under ${bundle}/node_modules; sessions would not work`);
+    }
   });
 
   await step('write the tui-grade wrapper', async () => {
