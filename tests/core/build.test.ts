@@ -74,6 +74,9 @@ async function build(
 const gccCfg = (over: Record<string, unknown> = {}): AssignmentConfig =>
   makeConfig({ type: 'gcc', sources: ['main.c'], output: 'out/app', ...over });
 
+/** The first compiler invocation can exceed Jest's default 5 s on macOS CI (the grader's build timeout is 60 s). */
+const SLOW_BUILD_MS = 60_000;
+
 describe('runBuild with gcc', () => {
   const gcc = itIf(hasTool('gcc'));
 
@@ -86,6 +89,7 @@ describe('runBuild with gcc', () => {
       expect(r.exitCode).toBe(0);
       expect((await stat(join(dir, 'out/app'))).mode & 0o100).toBeTruthy();
     }),
+    SLOW_BUILD_MS,
   );
 
   gcc('reports a syntax error as a failed build with the compiler output in the log', () =>
@@ -96,6 +100,7 @@ describe('runBuild with gcc', () => {
       expect(r.message).toBe('build_failed');
       expect(r.binaryPath).toBeUndefined();
     }),
+    SLOW_BUILD_MS,
   );
 
   gcc('counts warnings and still succeeds', () =>
@@ -105,6 +110,7 @@ describe('runBuild with gcc', () => {
       expect(r.ok).toBe(true);
       expect(r.warnings).toBeGreaterThanOrEqual(1);
     }),
+    SLOW_BUILD_MS,
   );
 
   gcc('reports a missing source file with a readable message', () =>
@@ -113,6 +119,7 @@ describe('runBuild with gcc', () => {
       expect(r.ok).toBe(false);
       expect(r.message).toContain('nope.c');
     }),
+    SLOW_BUILD_MS,
   );
 
   gcc('refuses sources that escape the project directory', () =>
@@ -121,6 +128,7 @@ describe('runBuild with gcc', () => {
       expect(r.ok).toBe(false);
       expect(r.message).toContain('escapes');
     }),
+    SLOW_BUILD_MS,
   );
 });
 
@@ -137,6 +145,7 @@ describe('runBuild with cmake', () => {
       expect(r.ok).toBe(true);
       expect(r.binaryPath).toBe(join(dir, 'build/app'));
     }),
+    SLOW_BUILD_MS,
   );
 });
 
