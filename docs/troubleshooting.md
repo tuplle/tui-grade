@@ -130,8 +130,10 @@ this repository.
 
 ## Publishing fails with an authentication error
 
-Set `NPM_TOKEN` for the release workflow or configure npm trusted publishing. The workflow grants `id-token: write` for
-provenance. See [Publishing](publishing.md).
+Releases use npm trusted publishing. Check that npmjs.com lists `tuplle/tui-grade` and `.github/workflows/release.yml`
+as a trusted publisher with **Allow npm publish**, and that the package already exists on npm. The workflow grants
+`id-token: write`; there is no `NPM_TOKEN` secret. An `ENEEDAUTH` error usually means the repository, workflow
+filename or allowed action does not match the npm configuration. See [Publishing](publishing.md).
 
 ## Still stuck?
 

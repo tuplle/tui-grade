@@ -120,6 +120,11 @@ describe('GitHub workflows', () => {
     const wf = await readYaml<Workflow>('.github/workflows/release.yml');
     expect(wf.on.push?.tags).toEqual(['v*']);
     expect(wf.permissions?.['contents']).toBe('write');
+    expect(wf.permissions?.['id-token']).toBe('write'); // OIDC for npm trusted publishing
+    const releaseText = await readFile(at('.github/workflows/release.yml'), 'utf8');
+    expect(releaseText).not.toMatch(/NPM_TOKEN|NODE_AUTH_TOKEN/);
+    const setupNode = wf.jobs['release']?.steps.find((s) => s.uses?.startsWith('actions/setup-node@'));
+    expect(setupNode?.with?.['registry-url']).toBe('https://registry.npmjs.org');
     const cmds = commands(wf);
     expect(cmds).toEqual(expect.arrayContaining(['pnpm install --frozen-lockfile', 'pnpm build', 'pnpm pack', 'node scripts/make-bundle.mjs']));
     const releaseSteps = wf.jobs['release']?.steps ?? [];

@@ -11,11 +11,41 @@
 
 ## Before the first publish
 
+Releases are published with **npm trusted publishing** (OIDC). There is no `NPM_TOKEN` secret.
+
+npm only lets you configure a trusted publisher for a package that already exists, so the very first version is
+published once with a normal npm login. Every later release comes from the tag workflow.
+
 1. Make sure the npm account owns the unscoped name `tui-grade` (or change `package.json#name` and README references).
-2. Create an npm automation token with publish rights, or configure npm trusted publishing for
-   `tuplle/tui-grade` and `.github/workflows/release.yml`.
-3. Add the token as the `NPM_TOKEN` repository secret when using a token. Trusted publishing does not need it.
-4. Bump `package.json#version` and create the matching tag (`v1.2.0` for `1.2.0`).
+2. Publish version `1.0.0` by hand (or publish a placeholder that is replaced by the real release):
+
+   ```bash
+   npm login --registry https://registry.npmjs.org
+   pnpm publish --access public --no-git-checks
+   npm logout --registry https://registry.npmjs.org
+   ```
+
+3. On npmjs.com open **Packages → tui-grade → Settings → Trusted publishing** and add GitHub Actions:
+   - organization or user: `tuplle`
+   - repository: `tui-grade`
+   - workflow filename: `release.yml`
+   - allowed actions: **Allow npm publish**
+
+   The CLI equivalent needs npm 11.15 or newer, account-level 2FA and an existing package:
+
+   ```bash
+   npm trust github tui-grade --repo tuplle/tui-grade --file release.yml --allow-publish
+   ```
+
+4. Tag the release: `v1.0.0` for the hand-published version, or bump `package.json#version` and tag the new version
+   (`v1.2.0` for `1.2.0`). The workflow publishes with the OIDC token of the run, skips npm when that version already
+   exists, and creates the GitHub release either way.
+5. After the first successful OIDC publish, restrict token publishing under **Settings → Publishing access**
+   ("Require two-factor authentication and disallow tokens").
+
+A new trusted publisher configuration must complete its first successful publish within two days, or it expires and
+has to be created again. Trusted publishing requires a GitHub-hosted runner and a public repository; pnpm 11.0.7 or
+newer publishes with OIDC natively (this repository pins pnpm 12).
 
 Use `pnpm publish`, not `npm publish`: the package declares `devEngines.packageManager: pnpm` and npm commands stop
 with `EBADDEVENGINES` inside this repository.
@@ -48,16 +78,19 @@ npx --yes --package "$PWD/$TARBALL" tui-grade --help
 3. packs the npm tarball;
 4. smoke-tests the tarball through `npx`;
 5. builds standalone bundles on Linux, macOS and Windows, with their smoke tests;
-6. publishes to npm with `pnpm publish --access public --provenance`;
+6. publishes to npm with `pnpm publish --access public --provenance` using npm trusted publishing
+   (`id-token: write`); when that version is already on npm, the step is skipped so a hand-published first release
+   does not fail the workflow;
 7. creates the GitHub release with the `.tgz` and every platform's `.tar.gz`.
 
-The workflow needs either:
+Publishing needs no repository secret. It requires:
 
-- `NPM_TOKEN` with publish rights (the current step reads it from `secrets.NPM_TOKEN`), or
-- npm trusted publishing configured for this repository, in which case the token environment can be removed and
-  `id-token: write` is already granted.
+- a trusted publisher on npmjs.com for `tuplle/tui-grade` and `.github/workflows/release.yml`, with `npm publish`
+  allowed (see [Before the first publish](#before-the-first-publish));
+- `id-token: write`, which the workflow grants, and a GitHub-hosted runner;
+- a package that already exists on npm.
 
-Provenance requires `id-token: write`, which the workflow grants.
+Provenance and the SLSA attestation are generated automatically by trusted publishing.
 
 ## What users run
 

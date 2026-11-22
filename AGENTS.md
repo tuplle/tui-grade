@@ -99,7 +99,9 @@ CI order is `install --frozen-lockfile` → `typecheck` → `test` → `build`. 
 - `dist/`, `bundle/`, `tui-grade-*.tar.gz` and `grading-results/` are generated/ignored; never edit them by hand.
   `bundle/` is platform-specific because `@microsoft/tui-test` has a native package.
 - Publishing uses `pnpm publish` (npm commands hit `devEngines`). The npm tarball comes from `pnpm pack`; the
-  standalone tarball comes from `scripts/make-bundle.mjs`. See `docs/publishing.md`.
+  standalone tarball comes from `scripts/make-bundle.mjs`. Releases publish from the tag workflow with npm trusted
+  publishing (OIDC, no `NPM_TOKEN`); the first version must be published by hand because npm requires an existing
+  package before a trusted publisher can be configured. See `docs/publishing.md`.
 
 ## Docs
 
