@@ -1,4 +1,4 @@
-import { chmod, readFile, writeFile } from 'node:fs/promises';
+import { chmod, readFile, realpath, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { sessions } from '@microsoft/tui-test';
 import { killAllChildren, livePtyRoots, registerPtyRoot, unregisterPtyRoot } from '../../src/core/process.ts';
@@ -81,7 +81,8 @@ describe('SessionHandle', () => {
         const screen = await s.screen();
         expect(screen).toContain('args=a b,c');
         expect(screen).toContain('foo=bar');
-        expect(screen).toContain(`cwd=${dir}`);
+        // macOS /var is a symlink to /private/var, and pwd prints the physical path.
+        expect(screen.replace(/\n/g, '')).toContain(`cwd=${await realpath(dir)}`);
       } finally {
         await s.close();
       }
@@ -109,7 +110,10 @@ describe('SessionHandle', () => {
           try {
             expect(await s.waitExit(3000)).toEqual({ exited: true, exitCode: 0 });
             const screen = await s.screen();
-            expect(screen).toContain(`secret=[] home=[${dir}] term=[xterm-256color] foo=[] lang=[C.UTF-8] path=[set]`);
+            // Long temp paths wrap at the terminal width; compare the logical line without soft breaks.
+            expect(screen.replace(/\n/g, '')).toContain(
+              `secret=[] home=[${dir}] term=[xterm-256color] foo=[] lang=[C.UTF-8] path=[set]`,
+            );
             expect(screen).not.toContain('hunter2');
           } finally {
             await s.close();

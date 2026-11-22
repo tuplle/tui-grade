@@ -157,7 +157,10 @@ describe('session step', () => {
     await withHarness('echo "$1|$FOO"; tput lines; tput cols', async ({ ctx, run }) => {
       const r = await run(step('session', { args: ['${workdir}/x'], env: { FOO: 'bar' }, rows: 15, cols: 44 }));
       expect(r.ok).toBe(true);
-      expect(ctx.lastSession?.screen).toBe(`${ctx.workdir}/x|bar\n15\n44`);
+      const screen = ctx.lastSession?.screen ?? '';
+      // The long macOS temp path wraps at 44 columns; compare it without the soft line break.
+      expect(screen.replace(/\n/g, '')).toContain(`${ctx.workdir}/x|bar`);
+      expect(screen).toMatch(/15\n44$/);
     });
   });
 
@@ -370,7 +373,8 @@ describe('screen checks', () => {
     });
 
   it('screen_contains sees the final screen after the program exited', async () => {
-    await screenOf('printf "Menu:\\n1) Prida\\xc5\\xa5\\n> "', async (ctx) => {
+    // Keep the literal UTF-8 `ť`: `/bin/sh` is dash on Ubuntu and its printf has no `\xHH` escapes.
+    await screenOf('printf "Menu:\\n1) Pridať\\n> "', async (ctx) => {
       expect((await evaluateCheck(ctx, check('screen_contains', '1) Pridať'))).pass).toBe(true);
       expect((await evaluateCheck(ctx, check('screen_contains', '> '))).pass).toBe(true); // blank cells after a prompt
       const miss = await evaluateCheck(ctx, check('screen_contains', 'Quit'));

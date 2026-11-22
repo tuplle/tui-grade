@@ -1,5 +1,5 @@
 import { existsSync } from 'node:fs';
-import { chmod, mkdir, readFile, symlink, writeFile } from 'node:fs/promises';
+import { chmod, mkdir, readFile, realpath, symlink, writeFile } from 'node:fs/promises';
 import { join } from 'node:path';
 import { App } from '../../src/core/app.ts';
 import type { ScenarioContext, StepSpec, ValidateContext } from '../../src/core/contracts.ts';
@@ -212,7 +212,8 @@ describe('run', () => {
   it('runs with the workdir as cwd and accepts a null/empty parameter block', async () => {
     await withHarness('pwd', async ({ ctx, run }) => {
       expect((await run(step('run', null))).ok).toBe(true);
-      expect(ctx.lastRun?.stdout.trim()).toBe(ctx.workdir);
+      // macOS /var is a symlink to /private/var, and pwd prints the physical path.
+      expect(ctx.lastRun?.stdout.trim()).toBe(await realpath(ctx.workdir));
     });
   });
 
