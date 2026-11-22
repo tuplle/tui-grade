@@ -1,6 +1,6 @@
-import { resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { rescoreRun } from '../../core/rescore.ts';
+import { resolveUserPath } from '../../core/paths.ts';
 import { stripControl } from '../../core/text.ts';
 import { formatNumber } from '../../plugins/reporter-shared.ts';
 import { type Command, UsageError, USAGE, formatIssue, positionalArgs } from '../common.ts';
@@ -27,10 +27,11 @@ export const rescoreCommand: Command = async (args, io) => {
   if (values.locale !== undefined && locale === undefined) throw new UsageError(`--locale must be one of: ${LOCALES.join(', ')}`);
 
   const cwd = io.cwd ?? process.cwd();
+  const resolvedOut = resolveUserPath(outDir, cwd);
   const { results, issues } = await rescoreRun({
-    assignmentDir: resolve(cwd, assignmentDir),
-    outDir: resolve(cwd, outDir),
-    ...(values.manual === undefined ? {} : { manualFile: resolve(cwd, values.manual) }),
+    assignmentDir: resolveUserPath(assignmentDir, cwd),
+    outDir: resolvedOut,
+    ...(values.manual === undefined ? {} : { manualFile: resolveUserPath(values.manual, cwd) }),
     ...(locale === undefined ? {} : { locale }),
   });
   for (const issue of issues) io.stderr.write(`${formatIssue(issue)}\n`);
@@ -42,6 +43,6 @@ export const rescoreCommand: Command = async (args, io) => {
   for (const result of results) {
     io.stdout.write(`${result.student.id.padEnd(width)}  ${formatNumber(result.score.points)} / ${formatNumber(result.score.max)}\n`);
   }
-  io.stdout.write(`\n${results.length} submission${results.length === 1 ? '' : 's'} rescored in ${resolve(cwd, outDir)}\n`);
+  io.stdout.write(`\n${results.length} submission${results.length === 1 ? '' : 's'} rescored in ${resolvedOut}\n`);
   return 0;
 };

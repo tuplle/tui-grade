@@ -1,6 +1,6 @@
 {
   "name": "tui-grade",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Plugin-based framework and CLI (tui-grade) for grading student terminal programs with declarative YAML scenarios",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -64,7 +64,7 @@
     "typecheck:watch": "tsc --noEmit -p tsconfig.json --watch",
     "test": "cross-env NODE_OPTIONS=\"--experimental-vm-modules --disable-warning=ExperimentalWarning\" jest",
     "test:unit": "cross-env NODE_OPTIONS=\"--experimental-vm-modules --disable-warning=ExperimentalWarning\" jest tests/core tests/plugins tests/cli tests/web tests/docs.test.ts tests/project-files.test.ts",
-    "test:windows": "cross-env NODE_OPTIONS=\"--experimental-vm-modules --disable-warning=ExperimentalWarning\" jest tests/core/data-dir.test.ts tests/web/open-browser.test.ts tests/docs.test.ts tests/project-files.test.ts",
+    "test:windows": "cross-env NODE_OPTIONS=\"--experimental-vm-modules --disable-warning=ExperimentalWarning\" jest tests/core/data-dir.test.ts tests/core/paths.test.ts tests/web/open-browser.test.ts tests/docs.test.ts tests/project-files.test.ts",
     "test:e2e": "cross-env NODE_OPTIONS=\"--experimental-vm-modules --disable-warning=ExperimentalWarning\" jest tests/e2e",
     "test:packaging": "cross-env NODE_OPTIONS=\"--experimental-vm-modules --disable-warning=ExperimentalWarning\" jest tests/packaging.test.ts",
     "test:watch": "cross-env NODE_OPTIONS=\"--experimental-vm-modules --disable-warning=ExperimentalWarning\" jest --watch",

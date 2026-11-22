@@ -30,7 +30,7 @@ Teacher-side metadata used by history and rescore:
   "outDir": "/home/teacher/.local/share/tui-grade/2026-11-21T17-43-23.732Z",
   "startedAt": "2026-11-21T17:43:23.991Z",
   "locale": "sk",
-  "version": "1.0.0"
+  "version": "1.0.1"
 }
 ```
 

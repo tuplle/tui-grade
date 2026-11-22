@@ -1,6 +1,6 @@
-import { resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { createGrader } from '../../grader.ts';
+import { resolveUserPath } from '../../core/paths.ts';
 import { type Command, USAGE, positionalArgs } from '../common.ts';
 
 export const schemaCommand: Command = async (args, io) => {
@@ -15,7 +15,7 @@ export const schemaCommand: Command = async (args, io) => {
     return 0;
   }
   const [dir] = positionalArgs('schema', positionals, 0, 1);
-  const schema = await createGrader(dir === undefined ? {} : { assignmentDir: resolve(io.cwd ?? process.cwd(), dir) }).schema();
+  const schema = await createGrader(dir === undefined ? {} : { assignmentDir: resolveUserPath(dir, io.cwd ?? process.cwd()) }).schema();
   io.stdout.write(`${JSON.stringify(schema, null, 2)}\n`);
   return 0;
 };

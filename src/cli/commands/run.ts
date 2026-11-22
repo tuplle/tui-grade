@@ -1,7 +1,8 @@
-import { join, resolve } from 'node:path';
+import { join } from 'node:path';
 import { parseArgs } from 'node:util';
 import { createGrader } from '../../grader.ts';
 import { defaultDataDir } from '../../core/data-dir.ts';
+import { resolveUserPath } from '../../core/paths.ts';
 import { isShuttingDown, shutdownExitCode } from '../../core/shutdown.ts';
 import { stripControl } from '../../core/text.ts';
 import { formatNumber } from '../../plugins/reporter-shared.ts';
@@ -43,9 +44,9 @@ export const runCommand: Command = async (args, io) => {
 
   const cwd = io.cwd ?? process.cwd();
   const outDir =
-    values.out === undefined ? join(defaultDataDir(), new Date().toISOString().replaceAll(':', '-')) : resolve(cwd, values.out);
+    values.out === undefined ? join(defaultDataDir(), new Date().toISOString().replaceAll(':', '-')) : resolveUserPath(values.out, cwd);
 
-  const grader = createGrader({ assignmentDir: resolve(cwd, assignmentDir) });
+  const grader = createGrader({ assignmentDir: resolveUserPath(assignmentDir, cwd) });
   if (only !== undefined) {
     // Selecting nothing would grade every student 0; refuse before anything is created. An invalid assignment
     // is left to the run itself, which reports its issues.
@@ -57,11 +58,11 @@ export const runCommand: Command = async (args, io) => {
     }
   }
   const { results, issues, outDir: written } = await grader.run({
-    inputPath: resolve(cwd, inputPath),
+    inputPath: resolveUserPath(inputPath, cwd),
     outDir,
     ...(only === undefined ? {} : { only }),
     ...(locale === undefined ? {} : { locale }),
-    ...(values.manual === undefined ? {} : { manualFile: resolve(cwd, values.manual) }),
+    ...(values.manual === undefined ? {} : { manualFile: resolveUserPath(values.manual, cwd) }),
     ...(values['keep-workdirs'] === undefined ? {} : { keepWorkdirs: values['keep-workdirs'] }),
     log: (m) => io.stderr.write(`${stripControl(m)}\n`), // progress never goes into the student output directory
     ...(values.events === true ? { onEvent: (event) => io.stdout.write(`${JSON.stringify(event)}\n`) } : {}),

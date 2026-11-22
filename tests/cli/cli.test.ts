@@ -257,6 +257,40 @@ describe('tui-grade run', () => {
     });
   });
 
+  it('expands ~ in --out and TUI_GRADE_DATA_DIR', async () => {
+    await withTempDir(async (root) => {
+      const env = await fakeAssignment(root);
+      await addStudent(env, 'alice', GOOD);
+      const cwd = join(root, 'cwd');
+      const home = join(root, 'home');
+      await mkdir(cwd);
+      await mkdir(home);
+      // A subprocess, so HOME is part of the environment before os.homedir() is called (Jest cannot change it).
+      const childEnv = { ...process.env, HOME: home, TUI_GRADE_DATA_DIR: '~/runs' };
+      const cliPath = join(repoRoot, 'src', 'cli', 'main.ts');
+
+      const out = spawnSync(process.execPath, [cliPath, 'run', env.assignment, env.input, '--out=~/out'], {
+        cwd,
+        env: childEnv,
+        encoding: 'utf8',
+        timeout: 60_000,
+      });
+      expect(out.status).toBe(0);
+      expect(existsSync(join(home, 'out', 'summary.csv'))).toBe(true);
+
+      const defaults = spawnSync(process.execPath, [cliPath, 'run', env.assignment, env.input], {
+        cwd,
+        env: childEnv,
+        encoding: 'utf8',
+        timeout: 60_000,
+      });
+      expect(defaults.status).toBe(0);
+      const dirs = await readdir(join(home, 'runs'));
+      expect(dirs).toHaveLength(1);
+      expect(existsSync(join(home, 'runs', dirs[0] as string, 'summary.csv'))).toBe(true);
+    });
+  });
+
   it('--only restricts the scenarios; an unknown id is a warning, not a failure', async () => {
     await withTempDir(async (root) => {
       const env = await fakeAssignment(root);

@@ -11,6 +11,7 @@ const root = new URL('../', import.meta.url).pathname.replace(/\/$/, '');
 const at = (...parts: string[]): string => join(root, ...parts);
 
 interface Manifest {
+  version: string;
   main: string;
   types: string;
   bin: Record<string, string>;
@@ -213,7 +214,8 @@ export default definePlugin(
 
       // The npx route must work from the same packed tarball.
       const npx = await run('npx', ['--yes', '--package', tarball, 'tui-grade', '--version'], { cwd: project, timeout: 180_000 });
-      expect(npx.stdout.trim()).toBe('1.0.0');
+      const manifest = await readJson<Manifest>('package.json');
+      expect(npx.stdout.trim()).toBe(manifest.version);
 
       // the built-in plugins are importable through the `exports` map
       const probe = await run('node', ['--input-type=module', '-e', "const m = await import('tui-grade/plugins/steps-basic'); console.log(typeof m.stepsBasic.fn)"], { cwd: project });

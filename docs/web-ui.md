@@ -11,7 +11,7 @@ tui-grade serve
 The command starts a server on `127.0.0.1:3333`, prints the URL and opens the default browser. `--port 4317` selects
 another port, `--no-open` only prints the URL, and `--results-root DIR` changes where runs are stored (default
 `$XDG_DATA_HOME/tui-grade` or `~/.local/share/tui-grade` on Linux, `~/Library/Application Support/tui-grade` on macOS,
-or `%LOCALAPPDATA%\tui-grade` on Windows).
+or `%LOCALAPPDATA%\tui-grade` on Windows). `TUI_GRADE_DATA_DIR` overrides the default; a leading `~` is expanded.
 
 The CLI is unchanged and remains the canonical grading path. Every command in the README still works.
 

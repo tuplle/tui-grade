@@ -13,6 +13,9 @@ tui-grade schema [assignment-dir]
 tui-grade --version
 ```
 
+Path arguments and options expand a leading `~`, including the `--flag=~/dir` form and `TUI_GRADE_DATA_DIR`;
+`TUI_GRADE_DATA_DIR` overrides the default data directory.
+
 ## Commands
 
 | Command | What it does |
@@ -120,7 +123,7 @@ tui-grade serve [--port N] [--results-root dir]
 | Option | Meaning |
 | --- | --- |
 | `--port N` | Listen port. Default `3333`. Use `0` for an OS-assigned port. |
-| `--results-root dir` | Where runs are stored. Default `<platform data dir>/tui-grade` (Linux `~/.local/share/tui-grade`, macOS `~/Library/Application Support/tui-grade`, Windows `%LOCALAPPDATA%\tui-grade`). |
+| `--results-root dir` | Where runs are stored. Default `<platform data dir>/tui-grade` (Linux `~/.local/share/tui-grade`, macOS `~/Library/Application Support/tui-grade`, Windows `%LOCALAPPDATA%\tui-grade`). `TUI_GRADE_DATA_DIR` overrides the default; a leading `~` is expanded. |
 | `--assignment dir` | Prefill the assignment path in the dashboard. |
 | `--submissions path` | Prefill the submissions path. |
 | `--no-open` | Print the URL without opening a browser. |

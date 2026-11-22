@@ -84,7 +84,7 @@ production `node_modules` and a launcher; only Node.js 26 has to be present. The
 was made on, because the terminal library has a native, platform-specific part.
 
 ```bash
-tar -xzf tui-grade-1.0.0-linux-x64.tar.gz
+tar -xzf tui-grade-1.0.1-linux-x64.tar.gz
 ./tui-grade/tui-grade --help          # the launcher also works through a symlink: ln -s $PWD/tui-grade/tui-grade ~/bin/
 ```
 

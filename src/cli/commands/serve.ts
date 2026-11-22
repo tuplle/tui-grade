@@ -1,6 +1,6 @@
-import { resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { defaultDataDir } from '../../core/data-dir.ts';
+import { resolveUserPath } from '../../core/paths.ts';
 import { openBrowser } from '../../web/open-browser.ts';
 import { startServer } from '../../web/server.ts';
 import { type Command, UsageError, USAGE } from '../common.ts';
@@ -25,14 +25,14 @@ export const serveCommand: Command = async (args, io) => {
   const port = values.port === undefined ? 3333 : Number(values.port);
   if (!Number.isInteger(port) || port < 0 || port > 65535) throw new UsageError(`--port must be an integer between 0 and 65535`);
   const cwd = io.cwd ?? process.cwd();
-  const resultsRoot = resolve(cwd, values['results-root'] ?? defaultDataDir());
+  const resultsRoot = resolveUserPath(values['results-root'] ?? defaultDataDir(), cwd);
 
   const server = await startServer({
     resultsRoot,
     port,
     initial: {
-      ...(values.assignment === undefined ? {} : { assignmentDir: resolve(cwd, values.assignment) }),
-      ...(values.submissions === undefined ? {} : { inputPath: resolve(cwd, values.submissions) }),
+      ...(values.assignment === undefined ? {} : { assignmentDir: resolveUserPath(values.assignment, cwd) }),
+      ...(values.submissions === undefined ? {} : { inputPath: resolveUserPath(values.submissions, cwd) }),
     },
   });
 

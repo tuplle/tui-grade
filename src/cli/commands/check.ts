@@ -1,6 +1,6 @@
-import { resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { createGrader } from '../../grader.ts';
+import { resolveUserPath } from '../../core/paths.ts';
 import { type Command, USAGE, positionalArgs, printIssues } from '../common.ts';
 
 export const checkCommand: Command = async (args, io) => {
@@ -15,7 +15,7 @@ export const checkCommand: Command = async (args, io) => {
     return 0;
   }
   const [dir] = positionalArgs('check', positionals, 1, 1) as [string];
-  const { ok, issues, scenarios } = await createGrader({ assignmentDir: resolve(io.cwd ?? process.cwd(), dir) }).inspect();
+  const { ok, issues, scenarios } = await createGrader({ assignmentDir: resolveUserPath(dir, io.cwd ?? process.cwd()) }).inspect();
 
   if (values.json) {
     io.stdout.write(`${JSON.stringify({ ok, issues, scenarios }, null, 2)}\n`);

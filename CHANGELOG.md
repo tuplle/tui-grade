@@ -3,6 +3,14 @@
 All notable changes to this project are documented here. The format is based on
 [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and this project uses semantic versioning.
 
+## [1.0.1] - 2026-11-22
+
+### Fixed
+
+- CLI path arguments and options (`--out`, `--manual`, `--results-root`, `--assignment`, `--submissions`) and
+  `TUI_GRADE_DATA_DIR` expand a leading `~`, so `--out=~/runs` no longer creates a literal `~/runs` directory in the
+  current working directory.
+
 ## [1.0.0] - 2026-11-21
 
 ### Added
@@ -28,4 +36,5 @@ All notable changes to this project are documented here. The format is based on
 - Student programs run with timeouts, output caps, a minimal environment and process-group cleanup.
 - The dashboard binds only to `127.0.0.1` and has no authentication; do not expose it.
 
+[1.0.1]: https://github.com/tuplle/tui-grade/releases/tag/v1.0.1
 [1.0.0]: https://github.com/tuplle/tui-grade/releases/tag/v1.0.0

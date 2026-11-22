@@ -1,6 +1,6 @@
-import { resolve } from 'node:path';
 import { parseArgs } from 'node:util';
 import { type DescribeEntry, createGrader } from '../../grader.ts';
+import { resolveUserPath } from '../../core/paths.ts';
 import { type Command, USAGE, positionalArgs } from '../common.ts';
 
 const HEADINGS = { step: 'Steps', check: 'Checks', builder: 'Builders', reporter: 'Reporters', scorer: 'Scorers' } as const;
@@ -44,7 +44,7 @@ export const describeCommand: Command = async (args, io) => {
     return 0;
   }
   const [dir] = positionalArgs('describe', positionals, 0, 1);
-  const entries = await createGrader(dir === undefined ? {} : { assignmentDir: resolve(io.cwd ?? process.cwd(), dir) }).describe();
+  const entries = await createGrader(dir === undefined ? {} : { assignmentDir: resolveUserPath(dir, io.cwd ?? process.cwd()) }).describe();
   io.stdout.write(values.json ? `${JSON.stringify(entries, null, 2)}\n` : renderText(entries));
   return 0;
 };

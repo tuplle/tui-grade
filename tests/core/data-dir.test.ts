@@ -32,4 +32,15 @@ describe('defaultDataDir', () => {
   it('returns a tui-grade child directory of the platform data directory', () => {
     expect(defaultDataDir()).toBe(join(dataBaseDir(process.platform, process.env, homedir()), 'tui-grade'));
   });
+
+  it('expands ~ in TUI_GRADE_DATA_DIR', () => {
+    const previous = process.env['TUI_GRADE_DATA_DIR'];
+    process.env['TUI_GRADE_DATA_DIR'] = '~/runs';
+    try {
+      expect(defaultDataDir()).toBe(join(homedir(), 'runs'));
+    } finally {
+      if (previous === undefined) delete process.env['TUI_GRADE_DATA_DIR'];
+      else process.env['TUI_GRADE_DATA_DIR'] = previous;
+    }
+  });
 });

@@ -43,11 +43,11 @@ dependencies of a consumer project.
 Download `tui-grade-<version>-<platform>-<arch>.tar.gz` from the GitHub release:
 
 ```bash
-tar -xzf tui-grade-1.0.0-linux-x64.tar.gz
+tar -xzf tui-grade-1.0.1-linux-x64.tar.gz
 ./tui-grade/tui-grade --help
 
 # Windows
-tar -xzf tui-grade-1.0.0-win32-x64.tar.gz
+tar -xzf tui-grade-1.0.1-win32-x64.tar.gz
 tui-grade\tui-grade.cmd --help
 ```
 

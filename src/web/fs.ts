@@ -1,6 +1,6 @@
-import { homedir } from 'node:os';
-import { dirname, isAbsolute, join, resolve } from 'node:path';
+import { dirname, join } from 'node:path';
 import { readdir, stat } from 'node:fs/promises';
+import { resolveUserPath } from '../core/paths.ts';
 import { HttpError } from './http-error.ts';
 
 export type BrowseMode = 'assignment' | 'submissions';
@@ -17,14 +17,8 @@ export interface BrowseResult {
   entries: BrowseEntry[];
 }
 
-function expand(path: string): string {
-  if (path === '~') return homedir();
-  if (path.startsWith('~/') || path.startsWith('~\\')) return join(homedir(), path.slice(2));
-  return isAbsolute(path) ? path : resolve(process.cwd(), path);
-}
-
 export async function browse(path: string | undefined, mode: BrowseMode): Promise<BrowseResult> {
-  const target = expand(path === undefined || path === '' ? process.cwd() : path);
+  const target = resolveUserPath(path === undefined || path === '' ? process.cwd() : path);
   const info = await stat(target).catch(() => null);
   if (info === null || !info.isDirectory()) throw new HttpError(400, 'not_a_directory', `${target} is not a directory`);
 
